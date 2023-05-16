@@ -1,0 +1,85 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8djxvp4claln"]
+
+[ext_resource type="PackedScene" uid="uid://ddufxghfwiryw" path="res://unitypackage_godot/scenes/browser/browser.tscn" id="1_52qqt"]
+[ext_resource type="PackedScene" uid="uid://ympl2lb5078y" path="res://unitypackage_godot/scenes/viewer/viewport.tscn" id="2_ryv23"]
+
+[sub_resource type="SystemFont" id="SystemFont_5otyp"]
+font_names = PackedStringArray("ComicCode Nerd Font")
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="Browser" parent="MarginContainer/HSplitContainer" node_paths=PackedStringArray("progress_bar", "viewport") instance=ExtResource("1_52qqt")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 2
+progress_bar = NodePath("../../../MarginContainerProgress/ProgressBar")
+viewport = NodePath("../VSplitContainer/Viewport/SubViewport")
+
+[node name="VSplitContainer" type="VSplitContainer" parent="MarginContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="Viewport" parent="MarginContainer/HSplitContainer/VSplitContainer" instance=ExtResource("2_ryv23")]
+layout_mode = 2
+
+[node name="SubViewport" parent="MarginContainer/HSplitContainer/VSplitContainer/Viewport" index="0"]
+size = Vector2i(1296, 780)
+
+[node name="Console" type="RichTextLabel" parent="MarginContainer/HSplitContainer/VSplitContainer" node_paths=PackedStringArray("shortcut_context")]
+visible = false
+custom_minimum_size = Vector2(100, 200)
+layout_mode = 2
+auto_translate = false
+localize_numeral_system = false
+focus_mode = 2
+shortcut_context = NodePath(".")
+theme_override_fonts/normal_font = SubResource("SystemFont_5otyp")
+bbcode_enabled = true
+scroll_following = true
+tab_size = 2
+context_menu_enabled = true
+meta_underlined = false
+hint_underlined = false
+threaded = true
+selection_enabled = true
+deselect_on_focus_loss_enabled = false
+
+[node name="MarginContainerProgress" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_top = 50
+
+[node name="ProgressBar" type="ProgressBar" parent="MarginContainerProgress"]
+visible = false
+custom_minimum_size = Vector2(600, 2.08165e-12)
+layout_mode = 2
+size_flags_horizontal = 4
+max_value = 1.0
+
+[node name="Loaded" type="Node3D" parent="."]
+
+[editable path="MarginContainer/HSplitContainer/VSplitContainer/Viewport"]

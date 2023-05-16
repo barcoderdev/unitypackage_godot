@@ -1,0 +1,9 @@
+# Godot 4+ specific ignores
+.godot/
+
+imports/
+.vscode/
+.DS_Store
+
+FBX2glTF
+unitypackage_util

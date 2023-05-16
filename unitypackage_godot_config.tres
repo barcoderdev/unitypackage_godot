@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UPackConfig" load_steps=2 format=3 uid="uid://c75id6ijbd4io"]
+
+[ext_resource type="Script" path="res://unitypackage_godot/lib/unitypackage/upack_config.gd" id="1_edp6l"]
+
+[resource]
+script = ExtResource("1_edp6l")
+unitypackage_util_path = "res://unitypackage_util"
+fbx2gltf_path = "res://FBX2glTF"
+extract_path = "res://imports/"
+debug_log = true
+immediate_load_assets = true
+default_open_path = ""

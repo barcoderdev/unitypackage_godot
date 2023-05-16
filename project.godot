@@ -1,0 +1,36 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="UnityPackage Godot"
+run/main_scene="res://unitypackage_godot/scenes/main.tscn"
+config/features=PackedStringArray("4.0", "Forward Plus")
+boot_splash/show_image=false
+config/icon="res://icon.svg"
+
+[debug]
+
+gdscript/warnings/unused_variable=0
+gdscript/warnings/unused_private_class_variable=0
+
+[display]
+
+window/size/viewport_width=1728
+window/size/viewport_height=800
+window/size/initial_position=Vector2i(300, 1900)
+
+[network]
+
+limits/packet_peer_stream/max_buffer_po2=32
+limits/debugger/max_chars_per_second=3276800
+limits/debugger/max_queued_messages=10240
+limits/debugger/max_errors_per_second=4000
+limits/debugger/max_warnings_per_second=4000

@@ -1,0 +1,58 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddufxghfwiryw"]
+
+[ext_resource type="Script" path="res://unitypackage_godot/scenes/browser/browser.gd" id="1_l3o00"]
+
+[node name="Browser" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_l3o00")
+
+[node name="FileDialog" type="FileDialog" parent="."]
+initial_position = 1
+title = "Open a File or Directory"
+size = Vector2i(800, 600)
+transient = false
+popup_window = true
+min_size = Vector2i(200, 300)
+ok_button_text = "Open"
+file_mode = 3
+access = 2
+filters = PackedStringArray("*.unitypackage")
+
+[node name="VSplitContainer" type="VSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainerTop" type="VBoxContainer" parent="VSplitContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="VSplitContainer/VBoxContainerTop"]
+layout_mode = 2
+text = "Import UnityPackage"
+
+[node name="Tree" type="Tree" parent="VSplitContainer/VBoxContainerTop"]
+custom_minimum_size = Vector2(100, 400)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainerBottom" type="VBoxContainer" parent="VSplitContainer"]
+layout_mode = 2
+
+[node name="ItemList" type="ItemList" parent="VSplitContainer/VBoxContainerBottom"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="Button" type="Button" parent="VSplitContainer/VBoxContainerBottom"]
+visible = false
+layout_mode = 2
+text = "Free Orphans"
