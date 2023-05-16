@@ -56,9 +56,9 @@ func load_package(package: String):
 	uurs.progress.message.connect(progress_message)
 
 	if loaded_packages.has(package):
-		pprint("Already Loaded: %s" % package)
+		pprint("Browser::AlreadyLoaded::%s" % package)
 	elif !uurs.load_catalog():
-		pprint("Load Catalog Failed: %s" % uurs.package_path, false)
+		pprint("Browser::LoadCatalogFailed::%s" % uurs.package_path, false)
 	else:
 		loaded_packages.push_back(package)
 		load_directories(uurs)
@@ -129,7 +129,7 @@ func load_asset_file(index):
 	elif packed_scene is PackedScene:
 		node = packed_scene.instantiate()
 		if not node is Node:
-			pprint("Not a node", false)
+			pprint("Browser::NotANode", false)
 			return
 	else:
 		node = packed_scene
@@ -156,7 +156,7 @@ func pprint(data, stringify = true, color = "#FFFFFF", print_console = false):
 
 func progress(cur, total):
 	if progress_bar == null:
-		push_warning("progress_bar not set")
+		push_warning("Browser::ProgressBarNotSet")
 		return
 
 	if cur < total:
