@@ -1,15 +1,16 @@
 # UnityPackage Godot
 
-- Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) at `res://FBX2glTF`
+- Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) at `res://FBX2glTF` (with .exe on Windows)
   - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/4994628239 (Login to Github first)
-- Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) at `res://unitypackage_util`
-  - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/4997846696 (Login to Github first)
+- Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) at `res://unitypackage_util` (with .exe on Windows)
+  - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/4998185113 (Login to Github first)
 - Make sure you can run `./FBX2glTF --help` and `./unitypackage_util --help` from command line, to check permissions
 - Config in `res://unitypackage_godot_config.tres`
+  - On windows update this with .exe for FBX2glTF.exe and unitypackage_util.exe
 
 ## Notes
 
-- This has only been tested with Godot 4.0.2 on macOS
+- This has only been tested with Godot 4.0.2 on macOS 13 and Windows 10
 - Main scene in `res://unitypackage_godot/scenes/main.tscn`
 - Uncheck `Immediate Load Assets` in `res://unitypackage_godot_config.tres` to only load what is opened in the UI
 - `*.unity` files are converted if they are manually loaded in the UI
@@ -27,6 +28,8 @@
 - FBX2glTF was modified to allow stdin/stdout, and to store pivot/transform-origin on each node
 - PivotFixer(GLTFDocumentExtension) uses this extra stored data to apply transform origin, later used when building the MeshInstance3D nodes
 - Left-to-right hand conversions are handled by -X positions and -X/-W quaternions
+- macOS uses pipes to communicate between unitypackage_util and FBX2glTF
+  - Windows requires using a temp file for this, temporarily created in the config `Extract Path` folder.
 
 ## Currently Implemented
 
