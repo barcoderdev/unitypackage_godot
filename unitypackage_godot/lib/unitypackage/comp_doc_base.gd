@@ -1,13 +1,13 @@
 #----------------------------------------
 
-class_name AssetDocBase extends BaseCommon
+class_name CompDocBase extends BaseCommon
 
 #----------------------------------------
 
 # Do not store anything on this
 # Store it on data for persistence
 
-var uurs: UPackRS
+var upack: UPackGD
 var asset: Asset
 var data: Dictionary
 
@@ -46,7 +46,7 @@ func trace(method: String, message: String = "", color: Color = Color.GREEN_YELL
 	]
 	if debug_log:
 		print_rich(text)
-	uurs.progress.message.emit(text)
+	upack.progress.message.emit(text)
 
 #----------------------------------------
 
@@ -94,13 +94,13 @@ func find_nodes_by_ufile_id(ufile_id: String, parent: Node) -> Array[Node]:
 #----------------------------------------
 
 func set_ufile_ids(node: Node, keys: PackedStringArray, _reason: String):
-	# push_warning("AssetDocBase::SetUFileIDs::%s" % reason)
+	# push_warning("CompDocBase::SetUFileIDs::%s" % reason)
 	node.set_meta("ufile_ids", keys)
 
 #----------------------------------------
 
-func get_asset_doc_by_ref(file_ref: Dictionary) -> AssetDoc:
-	return uurs.get_asset_doc_by_ref({
+func get_comp_doc_by_ref(file_ref: Dictionary) -> CompDoc:
+	return upack.get_comp_doc_by_ref({
 		"fileID": file_ref.fileID,
 		"guid": file_ref.get("guid", data._guid)
 	})
@@ -148,7 +148,7 @@ func node_to_packed_scene(node: Node3D) -> PackedScene:
 	var packer = PackedScene.new()
 	var result = packer.pack(node)
 	if result != OK:
-		push_error("AssetDoc::NodeToPackedSceneFailed::%d" % result)
+		push_error("CompDoc::NodeToPackedSceneFailed::%d" % result)
 		return null
 
 	return packer
@@ -156,10 +156,10 @@ func node_to_packed_scene(node: Node3D) -> PackedScene:
 #----------------------------------------
 
 func _to_string():
-	var _asset_doc_mesh_filter = data.has("_memcache_meshfilter")
-	var loaded = _asset_doc_mesh_filter
+	var _comp_doc_mesh_filter = data.has("_memcache_meshfilter")
+	var loaded = _comp_doc_mesh_filter
 
-#	return "[AssetDoc] GUID: %s | ID: %d | Extra: %s | Type: %s | Loaded: %s | %s" % [
+#	return "[CompDoc] GUID: %s | ID: %d | Extra: %s | Type: %s | Loaded: %s | %s" % [
 #		data._guid,
 #		data._file_id,
 #		data._extra,
@@ -178,7 +178,7 @@ func _to_string():
 #
 #func _get(property: StringName):
 #	if property != "script":
-#		print("AssetDocBase::_get::%s" % property)
+#		print("CompDocBase::_get::%s" % property)
 #
 #	if property == "_ufile_id":
 #		breakpoint
@@ -190,12 +190,12 @@ func _to_string():
 
 #----------------------------------------
 
-func _init(_uurs: UPackRS, _asset: Asset, _data: Dictionary):
-	uurs = _uurs
+func _init(_upack: UPackGD, _asset: Asset, _data: Dictionary):
+	upack = _upack
 	asset = _asset
 	data = _data
 
-	debug_log = !doc_debug_log_disable && uurs.debug_log
+	debug_log = !doc_debug_log_disable && upack.debug_log
 
 	_file_id = data._file_id
 	_ufile_id = data._ufile_id

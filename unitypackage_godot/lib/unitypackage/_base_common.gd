@@ -31,7 +31,7 @@ func append_ufile_ids(node: Node, keys: PackedStringArray, source: String):
 
 	for new_key in keys:
 		if existing_keys.has(new_key):
-			push_error("AssetDocBase::AppendUFileIDs::NotUnique::%s::in::%s" % [
+			push_error("CompDocBase::AppendUFileIDs::NotUnique::%s::in::%s" % [
 				new_key,
 				existing_keys
 			])

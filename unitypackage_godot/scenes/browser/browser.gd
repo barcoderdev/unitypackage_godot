@@ -19,7 +19,7 @@ var threading_for_load: bool = false
 @export var progress_bar: ProgressBar
 @export var viewport: Viewport
 
-@onready var upack_config = load("res://unitypackage_godot_config.tres") as UPackConfig
+@onready var upack_config = load("res://unitypackage_godot_config.tres") as UPackGDConfig
 
 #----------------------------------------
 
@@ -28,7 +28,7 @@ var progress_mutex: Mutex = Mutex.new()
 #----------------------------------------
 
 func _init():
-	UPackRS.call_only_once()
+	UPackGD.call_only_once()
 	init.call_deferred()
 
 #----------------------------------------
@@ -50,29 +50,29 @@ var loaded_packages = []
 
 func load_package(package: String):
 
-	var uurs = UPackRS.new(package, upack_config)
+	var upack = UPackGD.new(package, upack_config)
 
-	uurs.progress.progress.connect(progress_update)
-	uurs.progress.message.connect(progress_message)
+	upack.progress.progress.connect(progress_update)
+	upack.progress.message.connect(progress_message)
 
 	if loaded_packages.has(package):
 		pprint("Browser::AlreadyLoaded::%s" % package)
-	elif !uurs.load_catalog():
-		pprint("Browser::LoadCatalogFailed::%s" % uurs.package_path, false)
+	elif !upack.load_catalog():
+		pprint("Browser::LoadCatalogFailed::%s" % upack.package_path, false)
 	else:
 		loaded_packages.push_back(package)
-		load_directories(uurs)
+		load_directories(upack)
 		if upack_config.immediate_load_assets:
-			uurs.build_all_prefabs(false)
+			upack.build_all_prefabs(false)
 
 #----------------------------------------
 
-func load_directories(uurs: UPackRS):
-	var dirs = uurs.directories()
+func load_directories(upack: UPackGD):
+	var dirs = upack.directories()
 	var root_path = dirs[0]
 
 	var package_item = dir_tree.create_item()
-	package_item.set_text(0, uurs.package_path.get_file().get_basename())
+	package_item.set_text(0, upack.package_path.get_file().get_basename())
 
 	for dir in dirs:
 		if dir == root_path:
@@ -80,7 +80,7 @@ func load_directories(uurs: UPackRS):
 		var item = dir_tree.create_item(package_item)
 		var dir_path = dir.replace(root_path, "") + "/"
 		item.set_text(0, dir_path)
-		item.set_metadata(0, [uurs, dir])
+		item.set_metadata(0, [upack, dir])
 
 #----------------------------------------
 
@@ -90,22 +90,22 @@ func load_directory_files():
 	if meta == null:
 		return
 
-	var uurs = meta[0]
+	var upack = meta[0]
 	var dir = meta[1]
 
-	load_dir_items(uurs, dir)
+	load_dir_items(upack, dir)
 
 #----------------------------------------
 
-func load_dir_items(uurs: UPackRS, dir: String):
-	uurs.files(dir, func(_uurs: UPackRS, _dir_path: String, files: Array):
+func load_dir_items(upack: UPackGD, dir: String):
+	upack.files(dir, func(_upack: UPackGD, _dir_path: String, files: Array):
 		file_list.clear()
-		for item in uurs.files(dir):
+		for item in upack.files(dir):
 			var item_name = item.pathname.replace(dir + "/", "") as String
 			if item_name.contains("/"):
 				continue
 			var index = file_list.add_item(item_name)
-			file_list.set_item_metadata(index, [uurs, item._guid, item.pathname])
+			file_list.set_item_metadata(index, [upack, item._guid, item.pathname])
 
 		file_list.sort_items_by_text()
 	)
@@ -116,11 +116,11 @@ func load_asset_file(index):
 	console.clear()
 
 	var meta = file_list.get_item_metadata(index)
-	var uurs = meta[0] as UPackRS
+	var upack = meta[0] as UPackGD
 	var guid = meta[1] as String
 	var path = meta[2] as String
 
-	var asset = uurs.get_asset(guid)
+	var asset = upack.get_asset(guid)
 	var packed_scene = asset.asset_scene(null, null)
 	var node
 	if packed_scene == null:

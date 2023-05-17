@@ -4,7 +4,7 @@
 # if {guid}/asset is a yaml file in the package
 # All converted to a dictionary
 
-class_name AssetDoc extends AssetDocBase
+class_name CompDoc extends CompDocBase
 
 #----------------------------------------
 
@@ -21,7 +21,7 @@ func manual_mesh_patch(node: Node, node_name: String):
 
 #----------------------------------------
 
-func asset_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
+func comp_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("DocScene", "%s::%s" % [
 		str(self),
 		"ROOT" if root_node == null else "CHILD"
@@ -30,22 +30,22 @@ func asset_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
 	match data.type:
 		"Transform":
 			if is_stripped_transform():
-				return asset_doc_stripped_transform(root_node, parent)
+				return comp_doc_stripped_transform(root_node, parent)
 			else:
-				return asset_doc_transform(root_node, parent)
+				return comp_doc_transform(root_node, parent)
 		"MeshFilter":
-			return asset_doc_mesh_filter(root_node, parent)
+			return comp_doc_mesh_filter(root_node, parent)
 		"Prefab":
-			return asset_doc_prefab(root_node, parent)
+			return comp_doc_prefab(root_node, parent)
 		"PrefabInstance":
-			return asset_doc_prefab_instance(root_node, parent)
+			return comp_doc_prefab_instance(root_node, parent)
 		_:
-			push_error("AssetDoc::DocScene::UnsupportedType::%s" % data.type)
+			push_error("CompDoc::DocScene::UnsupportedType::%s" % data.type)
 			return null
 
 #----------------------------------------
 
-func asset_doc_transform(root_node: Node3D, parent: Node3D) -> Node3D:
+func comp_doc_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("Transform", "%s::%s" % [
 		str(self),
 		"ROOT" if root_node == null else "CHILD"
@@ -53,7 +53,7 @@ func asset_doc_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 
 	trace("Transform", "Building", Color.GREEN)
 	
-	var gameobject_doc = get_asset_doc_by_ref(data.content.m_GameObject)
+	var gameobject_doc = get_comp_doc_by_ref(data.content.m_GameObject)
 
 	if gameobject_doc.content.m_Name == "Root_M":
 		breakpoint
@@ -68,24 +68,24 @@ func asset_doc_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 	transform_node.scale = to_scale(data.content.m_LocalScale)
 	transform_node.position = to_position(data.content.m_LocalPosition)
 	transform_node.quaternion = to_quaternion(data.content.m_LocalRotation)
-	set_created_by(transform_node, "AssetDoc::Transform")
-	append_ufile_ids(transform_node, [self._ufile_id], "AssetDocTransform")
+	set_created_by(transform_node, "CompDoc::Transform")
+	append_ufile_ids(transform_node, [self._ufile_id], "CompDocTransform")
 
 	gameobject_doc.apply_component(root_node, parent, transform_node)
 
 	for comp_ref in data.content.m_Children:
-		var comp_doc = get_asset_doc_by_ref(comp_ref)
-		comp_doc.asset_doc_scene(root_node, transform_node)
+		var comp_doc = get_comp_doc_by_ref(comp_ref)
+		comp_doc.comp_doc_scene(root_node, transform_node)
 
 	if transform_node == null:
-		push_error("AssetDoc::Transform::BuildFailed")
+		push_error("CompDoc::Transform::BuildFailed")
 		return null
 
 	return transform_node
 
 #----------------------------------------
 
-func asset_doc_stripped_transform(root_node: Node3D, parent: Node3D) -> Node3D:
+func comp_doc_stripped_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("StrippedTransform", "%s::%s" % [
 		str(self),
 		"ROOT" if root_node == null else "CHILD"
@@ -95,53 +95,53 @@ func asset_doc_stripped_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 	var prefab_asset
 
 	if data.content.has("m_PrefabInstance"):
-		prefab_doc = get_asset_doc_by_ref(data.content.m_PrefabInstance)
+		prefab_doc = get_comp_doc_by_ref(data.content.m_PrefabInstance)
 		if !prefab_doc.content.has("m_SourcePrefab") || prefab_doc.content.m_SourcePrefab.fileID != 100100000:
 			breakpoint
-		prefab_asset = uurs.get_asset(prefab_doc.content.m_SourcePrefab.guid)
+		prefab_asset = upack.get_asset(prefab_doc.content.m_SourcePrefab.guid)
 	elif data.content.has("m_PrefabInternal"):
 #		if data.content.m_PrefabInternal.fileID == 1724041162:
 #			breakpoint
-		prefab_doc = get_asset_doc_by_ref(data.content.m_PrefabInternal)
+		prefab_doc = get_comp_doc_by_ref(data.content.m_PrefabInternal)
 		if !prefab_doc.content.has("m_ParentPrefab") || prefab_doc.content.m_ParentPrefab.fileID != 100100000:
 			breakpoint
-		prefab_asset = uurs.get_asset(prefab_doc.content.m_ParentPrefab.guid)
+		prefab_asset = upack.get_asset(prefab_doc.content.m_ParentPrefab.guid)
 	else:
 		breakpoint
 		return null
 
 	if not prefab_asset is Asset:
-		push_error("AssetDoc::StrippedTransform::PrefabAssetMissing::%s" % self)
+		push_error("CompDoc::StrippedTransform::PrefabAssetMissing::%s" % self)
 		return null
 
-	var node = _asset_doc_stripped_transform__build(root_node, parent, prefab_asset, prefab_doc)
+	var node = _comp_doc_stripped_transform__build(root_node, parent, prefab_asset, prefab_doc)
 
 	return node
 
 #----------------------------------------
 
-func _asset_doc_stripped_transform__build(root_node: Node3D, parent: Node3D, prefab_asset: Asset, prefab_doc: AssetDoc) -> Node3D:
+func _comp_doc_stripped_transform__build(root_node: Node3D, parent: Node3D, prefab_asset: Asset, prefab_doc: CompDoc) -> Node3D:
 	trace("_StrippedTransform", "Building", Color.GREEN)
 
-	var child_prefabs = asset.docs.filter(func(doc: AssetDoc):
+	var child_prefabs = asset.docs.filter(func(doc: CompDoc):
 		if !doc.is_prefab():
 			return false
 		# Prefab.m_Modification.m_TransformParent
 		var prefab_parent = doc.content.m_Modification.m_TransformParent
 		return prefab_parent.fileID == data._file_id
-	) as Array[AssetDoc]
+	) as Array[CompDoc]
 
 	var prefab = prefab_asset.asset_scene(root_node, parent)
 	_apply_modifications(parent, prefab, prefab_doc)
 
 	for child_doc in child_prefabs:
-		child_doc.asset_doc_scene(root_node, prefab)
+		child_doc.comp_doc_scene(root_node, prefab)
 
 	return prefab
 
 #----------------------------------------
 
-func asset_doc_prefab(root_node: Node3D, parent: Node3D) -> Node3D:
+func comp_doc_prefab(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("Prefab", "%s::%s" % [
 		str(self),
 		"ROOT" if root_node == null else "CHILD"
@@ -149,18 +149,18 @@ func asset_doc_prefab(root_node: Node3D, parent: Node3D) -> Node3D:
 
 	trace("Prefab", "Building", Color.GREEN)
 
-	var prefab_doc = uurs.get_asset_by_ref(data.content.m_ParentPrefab)
+	var prefab_doc = upack.get_asset_by_ref(data.content.m_ParentPrefab)
 	var node = prefab_doc.asset_scene(root_node, parent)
 
-	set_created_by(node, "AssetDoc::Prefab")
-	append_ufile_ids(node, [self._ufile_id], "AssetDocPefab")
+	set_created_by(node, "CompDoc::Prefab")
+	append_ufile_ids(node, [self._ufile_id], "CompDocPefab")
 	_apply_modifications(parent, node, self)
 
 	return node
 
 #----------------------------------------
 
-func asset_doc_prefab_instance(root_node: Node3D, parent: Node3D) -> Node3D:
+func comp_doc_prefab_instance(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("PrefabInstance", "%s::%s" % [
 		str(self),
 		"ROOT" if root_node == null else "CHILD"
@@ -168,24 +168,24 @@ func asset_doc_prefab_instance(root_node: Node3D, parent: Node3D) -> Node3D:
 
 	trace("PrefabInstance", "Building", Color.GREEN)
 
-	var prefab_doc = uurs.get_asset_by_ref(data.content.m_SourcePrefab)
+	var prefab_doc = upack.get_asset_by_ref(data.content.m_SourcePrefab)
 	if prefab_doc == null:
-		push_error("AssetDoc::PrefabInstance::SourcePrefabMissing::%s" % self)
+		push_error("CompDoc::PrefabInstance::SourcePrefabMissing::%s" % self)
 		return null
 	var node = prefab_doc.asset_scene(root_node, parent)
 
-	set_created_by(node, "AssetDoc::PrefabInstance")
-	append_ufile_ids(node, [self._ufile_id], "AssetDocPrefabInstance")
+	set_created_by(node, "CompDoc::PrefabInstance")
+	append_ufile_ids(node, [self._ufile_id], "CompDocPrefabInstance")
 	_apply_modifications(parent, node, self)
 
 	return node
 
 #----------------------------------------
 
-func asset_doc_mesh_filter(root_node: Node3D, parent: Node3D) -> Node3D:
+func comp_doc_mesh_filter(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("MeshFilter")
 
-	if uurs.enable_memcache && data.has("_memcache_mesh_filter"):
+	if upack.enable_memcache && data.has("_memcache_mesh_filter"):
 		trace("MeshFilter", "FromMemCache", Color.GREEN)
 		return duplicate(
 			root_node,
@@ -198,9 +198,9 @@ func asset_doc_mesh_filter(root_node: Node3D, parent: Node3D) -> Node3D:
 	var new_node: Node3D = Node3D.new()
 
 	if not mesh_ref.guid is String && mesh_ref.guid == 0 && mesh_ref.fileID == 10209:
-		_asset_doc_mesh_filter__plane(root_node, parent, new_node)
+		_comp_doc_mesh_filter__plane(root_node, parent, new_node)
 	else:
-		_asset_doc_mesh_filter__mesh_from_ref(root_node, parent, new_node, mesh_ref)
+		_comp_doc_mesh_filter__mesh_from_ref(root_node, parent, new_node, mesh_ref)
 
 	data._memcache_mesh_filter = new_node
 	return duplicate(
@@ -218,7 +218,7 @@ const use_pivot_wrapper: bool = false
 
 #----------------------------------------
 
-func _asset_doc_mesh_filter__plane(root_node: Node3D, parent: Node3D, transform_node: Node3D) -> void:
+func _comp_doc_mesh_filter__plane(root_node: Node3D, parent: Node3D, transform_node: Node3D) -> void:
 	trace("MeshFilter", "PlaneMesh::%s" % self, Color.WHITE)
 
 	var plane_mesh = PlaneMesh.new()
@@ -247,17 +247,17 @@ func _asset_doc_mesh_filter__plane(root_node: Node3D, parent: Node3D, transform_
 
 #----------------------------------------
 
-func _asset_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, transform_node: Node3D, mesh_ref: Dictionary) -> void:
-	var mesh_asset = uurs.get_asset_by_ref(mesh_ref)
+func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, transform_node: Node3D, mesh_ref: Dictionary) -> void:
+	var mesh_asset = upack.get_asset_by_ref(mesh_ref)
 	if mesh_asset == null:
-		push_error("AssetDoc::MeshFilter::GetAssetFailed:%s" % mesh_ref)
+		push_error("CompDoc::MeshFilter::GetAssetFailed:%s" % mesh_ref)
 		return
 
-	var mesh_name: Variant = _asset_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset, mesh_ref)
-	var scene: Node = _asset_doc_mesh_filter__mesh_from_ref__gltf_scene(mesh_asset)
+	var mesh_name: Variant = _comp_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset, mesh_ref)
+	var scene: Node = _comp_doc_mesh_filter__mesh_from_ref__gltf_scene(mesh_asset)
 
 	if scene == null:
-		push_error("AssetDoc::MeshFilter::GltfSceneFailed::%s::%s" % [
+		push_error("CompDoc::MeshFilter::GltfSceneFailed::%s::%s" % [
 			mesh_asset,
 			mesh_ref
 		])
@@ -289,12 +289,13 @@ func _asset_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tr
 			)
 
 		if search == null:
-			push_error("AssetDoc::MeshFilter::MeshSearchFailed1")
+			push_error("CompDoc::MeshFilter::MeshSearchFailed1")
 			search = scene
 			pass
 
 		mesh = search.mesh
 	else:
+		# TODO: This probably needs to include the whole scene, not just the 1st mesh
 		mesh_name = mesh_asset.pathname.get_file().get_basename()
 		search = search_for_node(scene, func(n):
 			if n is MeshInstance3D:
@@ -302,12 +303,12 @@ func _asset_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tr
 			return
 		)
 		if search == null:
-			push_error("AssetDoc::MeshFilter::MeshSearchFailed2")
+			push_error("CompDoc::MeshFilter::MeshSearchFailed2")
 			search = scene
 			pass
 		mesh = search.mesh
 
-	if uurs.enable_disk_storage:
+	if upack.enable_disk_storage:
 		var asset_storage_path = mesh_asset.disk_storage_path()
 		var mesh_storage_path = "%s%s/%d.tscn" % [
 			asset_storage_path.get_basename(),
@@ -325,7 +326,7 @@ func _asset_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tr
 	instance.position = search.position
 	instance.scale = search.scale
 	instance.name = "_mesh" # mesh_name
-	set_created_by(instance, "AssetDoc::MeshFilter")
+	set_created_by(instance, "CompDoc::MeshFilter")
 
 	# Wrap the mesh instance
 	if use_pivot_wrapper && search.position != Vector3.ZERO:
@@ -358,7 +359,7 @@ func _asset_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tr
 
 #----------------------------------------
 
-func _asset_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, mesh_ref: Dictionary):
+func _comp_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, mesh_ref: Dictionary):
 	var mesh_name: Variant
 
 	if mesh_asset.meta.content.has("fileIDToRecycleName"):
@@ -369,7 +370,7 @@ func _asset_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, me
 			.get(str(mesh_ref.fileID), "")
 		)
 		if mesh_name == null:
-			push_error("AssetDoc::MeshFilter::fileIDToRecycleName::MissingMeshName::%s" % mesh_ref)
+			push_error("CompDoc::MeshFilter::fileIDToRecycleName::MissingMeshName::%s" % mesh_ref)
 			return null
 	elif mesh_asset.meta.content.has("internalIDToNameTable"):
 		var entry = (mesh_asset
@@ -383,13 +384,13 @@ func _asset_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, me
 		if entry.size() > 0:
 			mesh_name = entry[0].second
 		if mesh_name == null:
-			push_error("AssetDoc::MeshFilter::internalIDToNameTable::MissingMeshName::%s::%s" % [
+			push_error("CompDoc::MeshFilter::internalIDToNameTable::MissingMeshName::%s::%s" % [
 				mesh_ref,
 				mesh_asset.meta.content.internalIDToNameTable
 			])
 			return null
 	else:
-		push_error("AssetDoc::MeshFilter::MissingMeshLookupDict::%s" % mesh_asset)
+		push_error("CompDoc::MeshFilter::MissingMeshLookupDict::%s" % mesh_asset)
 		push_error("...LookingFor::%s" % mesh_ref)
 		return null
 
@@ -397,14 +398,14 @@ func _asset_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, me
 
 #----------------------------------------
 
-func _asset_doc_mesh_filter__mesh_from_ref__gltf_scene(mesh_asset: Asset):
-	if mesh_asset.uurs.enable_memcache && data.has("_memcache_gltf_scene"):
+func _comp_doc_mesh_filter__mesh_from_ref__gltf_scene(mesh_asset: Asset):
+	if mesh_asset.upack.enable_memcache && data.has("_memcache_gltf_scene"):
 		return mesh_asset.data._memcache_gltf_scene
 
 	# Full thing has not been loaded yet
 	var buffer = mesh_asset.load_binary()
 	if buffer == null:
-		push_error("AssetDoc::MeshFilter::BufferEmpty")
+		push_error("CompDoc::MeshFilter::BufferEmpty")
 		return null
 
 	var doc = GLTFDocument.new()
@@ -417,7 +418,7 @@ func _asset_doc_mesh_filter__mesh_from_ref__gltf_scene(mesh_asset: Asset):
 		result = doc.append_from_buffer(buffer, "", state)
 
 	if result != OK:
-		push_error("AssetDoc::MeshFilter::AppendFromBufferFailed::%d" % result)
+		push_error("CompDoc::MeshFilter::AppendFromBufferFailed::%d" % result)
 		return null
 
 	# force PivotFixer to run
@@ -451,7 +452,7 @@ func apply_component(root_node: Node3D, parent: Node3D, transform_node: Node3D) 
 			# Heh
 			trace("ApplyComponent", "UnlikelyTODO::%s" % self)
 		_:
-			push_error("AssetDoc::Apply::UnsupportedType::%s" % data.type)
+			push_error("CompDoc::Apply::UnsupportedType::%s" % data.type)
 
 #----------------------------------------
 
@@ -462,7 +463,7 @@ func _apply_component__game_object(root_node: Node3D, parent: Node3D, transform_
 	], Color.CYAN)
 
 	if self.content.m_Name == null:
-		push_warning("AssetDoc::BuildGameObject::NoName::%s" % self)
+		push_warning("CompDoc::BuildGameObject::NoName::%s" % self)
 	else:
 		transform_node.name = data.content.m_Name
 
@@ -475,10 +476,10 @@ func _apply_component__game_object(root_node: Node3D, parent: Node3D, transform_
 	component_refs.sort_custom(_helper_sort_component_ref)
 
 	for comp_ref in component_refs:
-		var comp = get_asset_doc_by_ref(comp_ref.component)
+		var comp = get_comp_doc_by_ref(comp_ref.component)
 		
 		if comp == null:
-			push_warning("AssetDoc::BuildGameObject::ComponentDocNotFound::%s" % comp_ref)
+			push_warning("CompDoc::BuildGameObject::ComponentDocNotFound::%s" % comp_ref)
 			continue
 		
 		if comp.type == "Transform":
@@ -513,9 +514,9 @@ func _apply_component__mesh_filter(root_node: Node3D, parent: Node3D, transform_
 
 	var mesh_ref = data.content.m_Mesh
 	if not mesh_ref.guid is String && mesh_ref.guid == 0 && mesh_ref.fileID == 10209:
-		_asset_doc_mesh_filter__plane(root_node, parent, transform_node)
+		_comp_doc_mesh_filter__plane(root_node, parent, transform_node)
 	else:
-		_asset_doc_mesh_filter__mesh_from_ref(root_node, parent, transform_node, mesh_ref)
+		_comp_doc_mesh_filter__mesh_from_ref(root_node, parent, transform_node, mesh_ref)
 
 #----------------------------------------
 
@@ -527,9 +528,9 @@ func _apply_component__mesh_renderer(_root_node: Node3D, _parent: Node3D, transf
 		if mat_ref.guid == "0000000000000000f000000000000000":
 			return StandardMaterial3D.new()
 		else:
-			var material = uurs.get_asset_by_ref(mat_ref)
+			var material = upack.get_asset_by_ref(mat_ref)
 			if material == null:
-				push_warning("AssetDoc::ApplyComponentMeshRenderer::AssetNotFound::%s" % mat_ref)
+				push_warning("CompDoc::ApplyComponentMeshRenderer::AssetNotFound::%s" % mat_ref)
 				return StandardMaterial3D.new()
 			var mat = material.asset_material()
 			return mat
@@ -555,13 +556,13 @@ const COMPONENT_PROCESSING_SEQUENCE = {
 }
 
 func _helper_sort_component_ref(a, b):
-	var comp_a = get_asset_doc_by_ref(a.component)
-	var comp_b = get_asset_doc_by_ref(b.component)
+	var comp_a = get_comp_doc_by_ref(a.component)
+	var comp_b = get_comp_doc_by_ref(b.component)
 	if comp_a == null:
-		push_warning("AssetDoc::HelperSort::CompANotFound::%s" % a)
+		push_warning("CompDoc::HelperSort::CompANotFound::%s" % a)
 		return false
 	if comp_b == null:
-		push_warning("AssetDoc::HelperSort::CompBNotFound::%s" % b)
+		push_warning("CompDoc::HelperSort::CompBNotFound::%s" % b)
 		return false
 	var x = COMPONENT_PROCESSING_SEQUENCE.get(comp_a.type, 100)
 	var y = COMPONENT_PROCESSING_SEQUENCE.get(comp_b.type, 100)
@@ -591,7 +592,7 @@ func _apply_modifications__material(_parent: Node3D, node: Node3D, slot: String,
 	if !mat_ref.has("guid") || not mat_ref.guid is String || mat_ref.guid == "0000000000000000f000000000000000":
 		return
 
-	var mat_asset = uurs.get_asset_by_ref(mat_ref)
+	var mat_asset = upack.get_asset_by_ref(mat_ref)
 	if mat_asset == null:
 		return
 
@@ -604,7 +605,7 @@ func _apply_modifications__material(_parent: Node3D, node: Node3D, slot: String,
 
 #----------------------------------------
 
-func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
+func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: CompDoc):
 	trace("ApplyModifications", "%s::%s" % [
 		prefab_doc,
 		self
@@ -636,10 +637,10 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 			"m_StaticEditorFlags":			continue
 
 		if !m.target.has("guid") || !m.target.has("fileID"):
-			push_error("AssetDoc::ApplyModifications::InvalidTarget::%s" % m.target)
+			push_error("CompDoc::ApplyModifications::InvalidTarget::%s" % m.target)
 			continue
 		if not m.target.guid is String:
-			push_error("AssetDoc::ApplyModifications::InvalidTargetGuid::%s" % m.target)
+			push_error("CompDoc::ApplyModifications::InvalidTargetGuid::%s" % m.target)
 			continue
 
 		var cache_key = "%s:%s" % [m.target.guid, m.target.fileID]
@@ -654,7 +655,7 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 			if target.size() == 1:
 				target = target[0]
 			elif target.size() > 1:
-				push_warning("AssetDoc::ApplyModifications::MultipleTargets::%s" % m)
+				push_warning("CompDoc::ApplyModifications::MultipleTargets::%s" % m)
 				target = target[0]
 			else: # == 0
 				target = null
@@ -667,7 +668,7 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 			# https://forum.unity.com/threads/m_modification-doesnt-clear-old-references-when-the-prefab-is-modified.761219/
 			# Subject: m_Modification doesn't clear old references when the prefab is modified
 			# Unity Response: It's not a bug, but we're aware the design has some issues.			
-			if false: push_warning("AssetDoc::ApplyModifications::TargetMissing::%s" % m)
+			if false: push_warning("CompDoc::ApplyModifications::TargetMissing::%s" % m)
 			continue
 
 #		if m.target.fileID == 4287472177597850 && m.propertyPath == "m_LocalPosition.x":
@@ -719,7 +720,7 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 			"m_Name":					target.name = m.value
 			"m_Enabled":				target.visible = int(m.value) == 1
 			_:
-				push_warning("AssetDoc::ApplyModifications::UnexpectedPropertyPath::%s" % m)
+				push_warning("CompDoc::ApplyModifications::UnexpectedPropertyPath::%s" % m)
 
 	quat_builder.apply()
 

@@ -39,7 +39,7 @@ func asset_scene(root_node: Node3D, parent: Node3D = null):
 func asset_default_importer_prefab(root_node: Node3D, parent: Node3D = null):
 	trace("DefaultImporterPrefab")
 
-	if uurs.enable_memcache && data.has("_memcache_default_importer_prefab"):
+	if upack.enable_memcache && data.has("_memcache_default_importer_prefab"):
 		trace("DefaultImporterPrefab", "FromMemCache", Color.GREEN)
 		return instantiate(
 			root_node,
@@ -73,11 +73,11 @@ func asset_default_importer_prefab(root_node: Node3D, parent: Node3D = null):
 	set_created_by(new_root_node, "Asset::DefaultImporterPrefab")
 	append_ufile_ids(new_root_node, [data._ufile_id], "Asset::DefaultImporterPrefab")
 
-	uurs.progress.progress_add(root_children_docs.size(), "Root Nodes")
+	upack.progress.progress_add(root_children_docs.size(), "Root Nodes")
 
 	for child_doc in root_children_docs:
-		child_doc.asset_doc_scene(new_root_node, new_root_node)
-		uurs.progress.progress_tick(child_doc.asset.pathname)
+		child_doc.comp_doc_scene(new_root_node, new_root_node)
+		upack.progress.progress_tick(child_doc.asset.pathname)
 
 	# node_dump(new_root_node, "DefaultImporterPrefab 1")
 
@@ -94,7 +94,7 @@ func asset_default_importer_prefab(root_node: Node3D, parent: Node3D = null):
 func asset_native_format_importer_prefab(root_node: Node3D, parent: Node3D = null) -> Node3D:
 	trace("NativeFormatImporterPrefab")
 
-	if uurs.enable_memcache && data.has("_memcache_native_format_importer_prefab"):
+	if upack.enable_memcache && data.has("_memcache_native_format_importer_prefab"):
 		trace("NativeFormatImporterPrefab", "FromMemCache", Color.GREEN)
 		return instantiate(
 			root_node,
@@ -126,13 +126,13 @@ func asset_native_format_importer_prefab(root_node: Node3D, parent: Node3D = nul
 		push_error("Asset::NativeFormatImporterPrefab::RootDocNotFound::%s" % self)
 		return null
 
-	var root_doc = root_children_docs.front() as AssetDoc
+	var root_doc = root_children_docs.front() as CompDoc
 	trace("NativeFormatImporterPrefab", "%s::%s" % [
 		"RootTransform",
 		str(root_doc)
 	], Color.PURPLE)
 
-	var node = root_doc.asset_doc_scene(null, null)
+	var node = root_doc.comp_doc_scene(null, null)
 
 	data._memcache_native_format_importer_prefab = asset_save_node_get_packed_scene(node, "NativeFormatImporterPrefab")
 	return instantiate(
@@ -196,7 +196,7 @@ func asset_texture_importer(_root_node: Node3D, _parent: Node3D = null) -> Node3
 func asset_model_importer(root_node: Node3D, parent: Node3D = null) -> Node3D:
 	trace("ModelImporter")
 
-	if uurs.enable_memcache && data.has("_memcache_model_importer"):
+	if upack.enable_memcache && data.has("_memcache_model_importer"):
 		trace("ModelImporter", "FromMemCache", Color.GREEN)
 		return instantiate(
 			root_node,
@@ -256,7 +256,7 @@ func asset_model_importer(root_node: Node3D, parent: Node3D = null) -> Node3D:
 func asset_image() -> Image:
 	trace("Image")
 
-	if uurs.enable_memcache && data.has("_memcache_image"):
+	if upack.enable_memcache && data.has("_memcache_image"):
 		trace("Image", "FromMemCache", Color.GREEN)
 		return data._memcache_image
 
@@ -309,7 +309,7 @@ func asset_image__load_image_from_buffer(image: Image, buffer: PackedByteArray) 
 
 #----------------------------------------
 
-func asset_material__m_TexEnvs(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
+func asset_material__m_TexEnvs(material: StandardMaterial3D, mat_doc: CompDoc) -> void:
 	var shader_keywords = mat_doc.content.get("m_ShaderKeywords", "")
 	if shader_keywords == null:
 		shader_keywords = ""
@@ -321,7 +321,7 @@ func asset_material__m_TexEnvs(material: StandardMaterial3D, mat_doc: AssetDoc) 
 		if tex.m_Texture.fileID == 0 && !tex.m_Texture.has("guid"):
 			continue
 
-		var image_asset = uurs.get_asset_by_ref(tex.m_Texture)
+		var image_asset = upack.get_asset_by_ref(tex.m_Texture)
 		if not image_asset is Asset:
 			push_warning("Asset::Material::TextureAssetMissing::%s::%s" % [
 				self,
@@ -359,7 +359,7 @@ func asset_material__m_TexEnvs(material: StandardMaterial3D, mat_doc: AssetDoc) 
 
 #----------------------------------------
 
-func asset_material__m_Colors(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
+func asset_material__m_Colors(material: StandardMaterial3D, mat_doc: CompDoc) -> void:
 	for color in mat_doc.content.m_SavedProperties.m_Colors:
 		match color.keys().front():
 			"_Color":
@@ -382,7 +382,7 @@ func asset_material__m_Colors(material: StandardMaterial3D, mat_doc: AssetDoc) -
 
 #----------------------------------------
 
-func asset_material__m_Floats(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
+func asset_material__m_Floats(material: StandardMaterial3D, mat_doc: CompDoc) -> void:
 	for f in mat_doc.content.m_SavedProperties.m_Floats:
 		match f.keys().front():
 			# TODO
@@ -408,7 +408,7 @@ func asset_material__m_Floats(material: StandardMaterial3D, mat_doc: AssetDoc) -
 #----------------------------------------
 
 func asset_material() -> Material:
-	if uurs.enable_memcache && data.has("_memcache_material"):
+	if upack.enable_memcache && data.has("_memcache_material"):
 		trace("Material", "FromMemCache", Color.GREEN)
 		return data._memcache_material
 
@@ -424,9 +424,9 @@ func asset_material() -> Material:
 	else:
 		main_object_file_id = self.docs[0]._file_id
 
-	var mat_doc = uurs.get_asset_doc(data._guid, main_object_file_id)
-	if not mat_doc is AssetDoc:
-		push_error("_Material::AssetDocNotFound::%s" % main_object_file_id)
+	var mat_doc = upack.get_comp_doc(data._guid, main_object_file_id)
+	if not mat_doc is CompDoc:
+		push_error("_Material::CompDocNotFound::%s" % main_object_file_id)
 		return null
 
 	if mat_doc.content.m_Shader.guid != "0000000000000000f000000000000000":

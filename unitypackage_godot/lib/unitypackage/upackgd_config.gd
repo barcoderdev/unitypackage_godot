@@ -1,6 +1,6 @@
 #----------------------------------------
 
-class_name UPackConfig
+class_name UPackGDConfig
 extends Resource
 
 #----------------------------------------

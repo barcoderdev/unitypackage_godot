@@ -2,7 +2,7 @@
 
 # Interface for unitypackage-rs utility
 
-class_name UPackRS extends UPackRSBase
+class_name UPackGD extends UPackGDBase
 
 #----------------------------------------
 
@@ -15,7 +15,7 @@ var progress: ProgressUpdates = ProgressUpdates.new()
 
 #----------------------------------------
 
-# callback(UPackRS, bool)
+# callback(UPackGD, bool)
 
 func load_catalog(callback: Callable = Callable()) -> bool:
 	if callback.is_valid():
@@ -46,12 +46,12 @@ func load_catalog(callback: Callable = Callable()) -> bool:
 
 func get_asset_by_ref(file_ref: Dictionary) -> Asset:
 	if !file_ref.has("guid"):
-		push_error("UPackRS::AssetByRef::GuidMissing::%s" % file_ref)
+		push_error("UPackGD::AssetByRef::GuidMissing::%s" % file_ref)
 		return null
 
 	var guid = file_ref.guid
 	if not guid is String:
-		push_error("UPackRS::AssetByRef::BadGuid::%s" % guid)
+		push_error("UPackGD::AssetByRef::BadGuid::%s" % guid)
 		return null
 
 	return get_asset(file_ref.guid)
@@ -60,7 +60,7 @@ func get_asset_by_ref(file_ref: Dictionary) -> Asset:
 
 func get_asset(guid: String) -> Asset:
 	if !catalog.has(guid):
-		push_error("UPackRS::AssetNotFound::%s" % guid)
+		push_error("UPackGD::AssetNotFound::%s" % guid)
 		return null
 
 	var asset_data = catalog[guid]
@@ -74,15 +74,15 @@ func get_asset(guid: String) -> Asset:
 
 #----------------------------------------
 
-func get_asset_doc_by_ref(file_ref: Dictionary) -> AssetDoc:
-	return get_asset_doc(file_ref.guid, file_ref.fileID)
+func get_comp_doc_by_ref(file_ref: Dictionary) -> CompDoc:
+	return get_comp_doc(file_ref.guid, file_ref.fileID)
 
-func get_asset_doc(guid: String, file_id: int) -> AssetDoc:
+func get_comp_doc(guid: String, file_id: int) -> CompDoc:
 	var asset = get_asset(guid)
 	if asset == null:
 		return null
 
-	return asset.get_asset_doc_by_id(file_id)
+	return asset.get_comp_doc_by_id(file_id)
 
 #----------------------------------------
 

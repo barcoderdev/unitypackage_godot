@@ -1,6 +1,6 @@
 #----------------------------------------
 
-class_name UPackRSBase
+class_name UPackGDBase
 
 #----------------------------------------
 
@@ -47,19 +47,19 @@ var unitypackage_util: String
 var fbx2gltf: String
 var enable_disk_storage: bool = false
 var enable_memcache: bool = false
-var upack_config: UPackConfig
+var upack_config: UPackGDConfig
 
 #----------------------------------------
 
 static func call_only_once():
-	print("UPackRS::CallOnlyOnce::RegisterPivotFixer")
+	print("UPackGD::CallOnlyOnce::RegisterPivotFixer")
 	GLTFDocument.register_gltf_document_extension(PivotFixer.new(), true)
 
 #----------------------------------------
 
 func directories() -> PackedStringArray:
 	if catalog == null || catalog.is_empty():
-		push_error("UPackRS::_directories::NotReady")
+		push_error("UPackGD::_directories::NotReady")
 		return []
 
 	var dir_only = func(guid) -> bool:
@@ -78,7 +78,7 @@ func directories() -> PackedStringArray:
 
 #----------------------------------------
 
-# callback(UPackRS, dir_path: String, files: Array)
+# callback(UPackGD, dir_path: String, files: Array)
 
 func files(dir_path: String, callback: Callable = Callable()) -> Array:
 	if callback.is_valid():
@@ -94,7 +94,7 @@ func files(dir_path: String, callback: Callable = Callable()) -> Array:
 
 func _files(dir_path: String) -> Array:
 	if catalog == null || catalog.is_empty():
-		push_error("UPackRS::_directory_list::NotReady")
+		push_error("UPackGD::_directory_list::NotReady")
 		return []
 
 	var dir_path_files_only = func (guid: String, dir_path: String) -> bool:
@@ -209,7 +209,7 @@ func package_dump():
 			file.store_string(JSON.stringify(json))
 			file.close()
 		else:
-			push_warning("UPackRS::PackageDump::FileOpenError::%s::%s" % [FileAccess.get_open_error(), disk_path])
+			push_warning("UPackGD::PackageDump::FileOpenError::%s::%s" % [FileAccess.get_open_error(), disk_path])
 
 	return json
 
@@ -260,7 +260,7 @@ func _package_list(dir: String):
 #----------------------------------------
 
 func _util_execute(arguments: PackedStringArray, default: Variant):
-	print("UPackRS::UtilExecute::%s %s" % [unitypackage_util, " ".join(arguments)])
+	print("UPackGD::UtilExecute::%s %s" % [unitypackage_util, " ".join(arguments)])
 	var output = []
 	var result = OS.execute(ProjectSettings.globalize_path(unitypackage_util), arguments, output)
 	if result != 0:
@@ -271,7 +271,7 @@ func _util_execute(arguments: PackedStringArray, default: Variant):
 #----------------------------------------
 
 func _fbx2gltf_execute(arguments: PackedStringArray, default: Variant):
-	print("UPackRS::Fbx2GltfExecute::%s %s" % [fbx2gltf, " ".join(arguments)])
+	print("UPackGD::Fbx2GltfExecute::%s %s" % [fbx2gltf, " ".join(arguments)])
 	var output = []
 	var result = OS.execute(ProjectSettings.globalize_path(fbx2gltf), arguments, output)
 	if result != 0:
@@ -281,7 +281,7 @@ func _fbx2gltf_execute(arguments: PackedStringArray, default: Variant):
 
 #----------------------------------------
 
-func _init(_package_path: String, _upack_config: UPackConfig):
+func _init(_package_path: String, _upack_config: UPackGDConfig):
 	package_path = _package_path
 	upack_config = _upack_config
 
@@ -299,7 +299,7 @@ func _init(_package_path: String, _upack_config: UPackConfig):
 
 func trace(message: String, color: Color = Color.VIOLET) -> void:
 	if debug_log:
-		print_rich("📦 [color=%s][UPackRS] %s[/color]" % [
+		print_rich("📦 [color=%s][UPackGD] %s[/color]" % [
 			color.to_html(),
 			message
 		])

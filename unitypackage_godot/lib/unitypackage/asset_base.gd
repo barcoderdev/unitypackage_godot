@@ -12,12 +12,12 @@ const DISK_STORAGE_VERSION_KEY: String = "disk_store_ver"
 # Do not store anything on this
 # Store it on data for persistence
 
-var uurs: UPackRS
+var upack: UPackGD
 var data: Dictionary
 
 #----------------------------------------
 
-var meta: AssetMeta
+var meta: MetaDoc
 var docs
 var type: String
 var filename: String
@@ -49,7 +49,7 @@ func trace(method: String, message: String = "", color: Color = Color.DODGER_BLU
 	]
 	if debug_log:
 		print_rich(text)
-	uurs.progress.message.emit(text)
+	upack.progress.message.emit(text)
 
 #----------------------------------------
 
@@ -71,7 +71,7 @@ func load_binary() -> PackedByteArray:
 
 	if data.get("_memcache_packagebinary", null) == null:
 		var convert_fbx = data.content_type == "data/fbx"
-		var bin_data = uurs.package_extract_binary(data._guid, convert_fbx)
+		var bin_data = upack.package_extract_binary(data._guid, convert_fbx)
 		if bin_data.size() == 0:
 			push_error("Asset::LoadBinary::PackageExtractBinaryFailed")
 			var _null = null
@@ -106,7 +106,7 @@ func load_binary_from_cache() -> PackedByteArray:
 #----------------------------------------
 
 func save_binary() -> bool:
-	if !uurs.enable_disk_storage:
+	if !upack.enable_disk_storage:
 		trace("SaveBinary::EnableDiskStorage::Disabled", "", Color.RED)
 		return false
 
@@ -134,8 +134,8 @@ func save_binary() -> bool:
 
 func disk_storage_path() -> String:
 	var path: String = "%s/%s/%s" % [
-		uurs.upack_config.extract_path,
-		uurs.package_path.get_file().get_basename(),
+		upack.upack_config.extract_path,
+		upack.package_path.get_file().get_basename(),
 		data.pathname
 	]
 	path = path.simplify_path()
@@ -148,7 +148,7 @@ func disk_storage_path() -> String:
 #----------------------------------------
 
 func disk_storage_handler(disk_path: String, builder: Callable) -> Variant:
-	if !uurs.enable_disk_storage:
+	if !upack.enable_disk_storage:
 		trace("DiskStorageHandler::EnableDiskStorage::Disabled", "", Color.RED)
 		return builder.call()
 
@@ -207,8 +207,8 @@ func disk_storage_handler(disk_path: String, builder: Callable) -> Variant:
 
 func asset_path_on_disk() -> String:
 	var path_name = ("%s/%s/%s" % [
-		uurs.upack_config.extract_path,
-		uurs.package_path.get_file().get_basename(),
+		upack.upack_config.extract_path,
+		upack.package_path.get_file().get_basename(),
 		data.pathname
 	])
 	var base_name = path_name.get_basename().simplify_path()
@@ -238,7 +238,7 @@ func asset_path_on_disk() -> String:
 #----------------------------------------
 
 func asset_is_on_disk() -> bool:
-	if !uurs.enable_disk_storage:
+	if !upack.enable_disk_storage:
 		trace("AssetIsOnDisk::DiskStorageDisabled")
 		return false
 
@@ -276,7 +276,7 @@ func _asset_load_from_disk():
 #----------------------------------------
 
 func asset_save_node_get_packed_scene(node: Node3D, source: String) -> PackedScene:
-	if !uurs.enable_disk_storage:
+	if !upack.enable_disk_storage:
 		trace("SaveNodeGetPackedScene::DiskStorageDisabled", "", Color.YELLOW)
 		return asset_node_to_packed_scene(node)
 
@@ -322,7 +322,7 @@ func asset_node_to_packed_scene(node: Node3D) -> PackedScene:
 #----------------------------------------
 
 func asset_save_resource_to_disk(_asset, _source: String):
-	if !uurs.enable_disk_storage:
+	if !upack.enable_disk_storage:
 		trace("AssetSaveResourceToDisk::DiskStorageDisabled", "", Color.YELLOW)
 		return _asset
 
@@ -340,7 +340,7 @@ func asset_save_resource_to_disk(_asset, _source: String):
 
 #----------------------------------------
 
-func get_asset_doc_by_id(file_id: int) -> AssetDoc:
+func get_comp_doc_by_id(file_id: int) -> CompDoc:
 	if docs == null:
 		return null
 	for doc in docs:
@@ -350,7 +350,7 @@ func get_asset_doc_by_id(file_id: int) -> AssetDoc:
 
 #----------------------------------------
 
-func get_transform_doc_from_gameobject_id(file_id: int) -> AssetDoc:
+func get_transform_doc_from_gameobject_id(file_id: int) -> CompDoc:
 	if docs == null:
 		return null
 	for doc in docs:
@@ -360,10 +360,10 @@ func get_transform_doc_from_gameobject_id(file_id: int) -> AssetDoc:
 
 #----------------------------------------
 
-func _helper_is_root_node(doc: AssetDoc):
+func _helper_is_root_node(doc: CompDoc):
 	return doc.is_root_node()
 
-func _helper_sort_root_order(a: AssetDoc, b: AssetDoc):
+func _helper_sort_root_order(a: CompDoc, b: CompDoc):
 	return a.get_root_order() < b.get_root_order()
 
 #----------------------------------------
@@ -398,12 +398,12 @@ func _get(property: StringName):
 
 #----------------------------------------
 
-func _init(_uurs: UPackRS, _data: Dictionary):
-	uurs = _uurs
+func _init(_upack: UPackGD, _data: Dictionary):
+	upack = _upack
 	data = _data
-	meta = AssetMeta.new(uurs, self, data.asset_meta[0])
+	meta = MetaDoc.new(upack, self, data.asset_meta[0])
 
-	debug_log = uurs.debug_log
+	debug_log = upack.debug_log
 
 	type = meta.type
 	filename = data.pathname.get_basename().get_file()
@@ -412,6 +412,6 @@ func _init(_uurs: UPackRS, _data: Dictionary):
 
 	if data.asset != null:
 		docs = data.asset.map(func(doc):
-			return AssetDoc.new(uurs, self, doc))
+			return CompDoc.new(upack, self, doc))
 
 #----------------------------------------
