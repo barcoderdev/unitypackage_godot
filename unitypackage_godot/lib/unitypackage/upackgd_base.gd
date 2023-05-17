@@ -191,25 +191,36 @@ func package_extract_json(guid: String):
 #----------------------------------------
 
 func package_dump():
-	var disk_path: String = "%s/%s/catalog.json" % [
+	var catalog_path: String = "%s/%s/catalog.json" % [
+		upack_config.extract_path,
+		package_path.get_file().get_basename()
+	]
+	var location_path: String = "%s/%s/location.txt" % [
 		upack_config.extract_path,
 		package_path.get_file().get_basename()
 	]
 
-	if upack_config.enable_disk_storage && FileAccess.file_exists(disk_path):
-		var json = FileAccess.get_file_as_string(disk_path)
+	if upack_config.enable_disk_storage && FileAccess.file_exists(catalog_path):
+		var json = FileAccess.get_file_as_string(catalog_path)
 		return JSON.parse_string(json)
 
 	var json = _package_dump()
 
 	if upack_config.enable_disk_storage:
-		DirAccess.make_dir_recursive_absolute(disk_path.get_base_dir())
-		var file = FileAccess.open(disk_path, FileAccess.WRITE)
+		DirAccess.make_dir_recursive_absolute(catalog_path.get_base_dir())
+		var file = FileAccess.open(catalog_path, FileAccess.WRITE)
 		if file != null:
 			file.store_string(JSON.stringify(json))
 			file.close()
 		else:
-			push_warning("UPackGD::PackageDump::FileOpenError::%s::%s" % [FileAccess.get_open_error(), disk_path])
+			push_warning("UPackGD::PackageDump::FileOpenError::%s::%s" % [FileAccess.get_open_error(), catalog_path])
+
+		file = FileAccess.open(location_path, FileAccess.WRITE)
+		if file != null:
+			file.store_string(package_path)
+			file.close()
+		else:
+			push_warning("UPackGD::PackageDump::FileOpenError::%s::%s" % [FileAccess.get_open_error(), location_path])
 
 	return json
 

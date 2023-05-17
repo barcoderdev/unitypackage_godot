@@ -7,7 +7,7 @@ class_name Asset extends AssetBase
 #----------------------------------------
 
 func asset_scene(root_node: Node3D, parent: Node3D = null):
-	trace("AssetScene")
+	trace("Scene")
 
 	match self.type:
 		"ModelImporter":
@@ -19,7 +19,7 @@ func asset_scene(root_node: Node3D, parent: Node3D = null):
 				"mat":
 					return asset_native_format_importer_material(root_node, parent)
 				_:
-					push_error("Asset::AssetScene::UnsupportedType::%s::%s" % [
+					push_error("Asset::Scene::UnsupportedType::%s::%s" % [
 						self.type,
 						self.extension
 					])
@@ -31,7 +31,7 @@ func asset_scene(root_node: Node3D, parent: Node3D = null):
 		"PrefabImporter":
 			return asset_native_format_importer_prefab(root_node, parent)
 		_:
-			push_error("Asset::AssetScene::UnsupportedType::%s" % self.type)
+			push_error("Asset::Scene::UnsupportedType::%s" % self.type)
 			return null
 
 #----------------------------------------

@@ -22,7 +22,7 @@ func manual_mesh_patch(node: Node, node_name: String):
 #----------------------------------------
 
 func comp_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
-	trace("DocScene", "%s::%s" % [
+	trace("Scene", "%s::%s" % [
 		str(self),
 		"ROOT" if root_node == null else "CHILD"
 	], Color.ORANGE)
@@ -40,7 +40,7 @@ func comp_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
 		"PrefabInstance":
 			return comp_doc_prefab_instance(root_node, parent)
 		_:
-			push_error("CompDoc::DocScene::UnsupportedType::%s" % data.type)
+			push_error("CompDoc::Scene::UnsupportedType::%s" % data.type)
 			return null
 
 #----------------------------------------
@@ -214,6 +214,7 @@ func comp_doc_mesh_filter(root_node: Node3D, parent: Node3D) -> Node3D:
 
 # Using the wrapper can resolve issues with scaling and rotation
 # Without using the wrapper, to fix any scaling issues also apply the fix to the position
+# TODO: This can probably be removed after more testing, using the "false" logic
 const use_pivot_wrapper: bool = false
 
 #----------------------------------------
@@ -275,6 +276,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 			return
 		)
 		if search == null && mesh_name.begins_with("//"):
+			# Try searching without the prefixed "//"
 			mesh_name = mesh_name.substr(2)
 			search = search_for_node(scene, func(n):
 				if mesh_name == n.name && n is MeshInstance3D:
@@ -282,6 +284,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 				return
 			)
 		if search == null:
+			# Try searching for any mesh
 			search = search_for_node(scene, func(n):
 				if n is MeshInstance3D:
 					return n
@@ -289,13 +292,15 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 			)
 
 		if search == null:
+			# TODO: Figure out correct behavior
 			push_error("CompDoc::MeshFilter::MeshSearchFailed1")
 			search = scene
-			pass
 
 		mesh = search.mesh
-	else:
+	else: # mesh_name == null
 		# TODO: This probably needs to include the whole scene, not just the 1st mesh
+		push_warning("CompDoc::MeshFilter::MakingAGuess")
+
 		mesh_name = mesh_asset.pathname.get_file().get_basename()
 		search = search_for_node(scene, func(n):
 			if n is MeshInstance3D:
@@ -305,7 +310,6 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 		if search == null:
 			push_error("CompDoc::MeshFilter::MeshSearchFailed2")
 			search = scene
-			pass
 		mesh = search.mesh
 
 	if upack.enable_disk_storage:

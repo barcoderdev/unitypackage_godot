@@ -38,7 +38,7 @@ func trace(method: String, message: String = "", color: Color = Color.GREEN_YELL
  
 	var emoji = "%s " % emojis[data.type] if emojis.has(data.type) else ""
 
-	var text = "%s[color=%s][Doc] %s::%s[/color]" % [
+	var text = "%s[color=%s][CompDoc] %s::%s[/color]" % [
 		emoji,
 		color.to_html(),
 		method,
@@ -167,7 +167,7 @@ func _to_string():
 #		"Yes" if loaded else "No",
 #		asset.pathname
 #	]
-	return "[Doc] %s | [color=#ffffff]%s[/color] | %s # %d" % [
+	return "[CompDoc] %s | [color=#ffffff]%s[/color] | %s # %d" % [
 		data.type,
 		asset.pathname, #.get_file(),
 		data._guid,

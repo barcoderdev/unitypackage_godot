@@ -44,6 +44,22 @@ func init():
 	file_list.item_activated.connect(load_asset_file)
 	file_dialog.file_selected.connect(func(path): load_package(path))
 
+	load_imported_pacakges()
+
+#----------------------------------------
+
+func load_imported_pacakges():
+	var dir = DirAccess.open(upack_config.extract_path)
+	for d in dir.get_directories():
+		var location_file = "%s/%s/location.txt" % [
+			upack_config.extract_path,
+			d
+		]
+		if !FileAccess.file_exists(location_file):
+			continue
+		var location = FileAccess.get_file_as_string(location_file)
+		load_package(location)
+
 #----------------------------------------
 
 var loaded_packages = []
