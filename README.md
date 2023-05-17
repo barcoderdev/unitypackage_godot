@@ -1,7 +1,9 @@
 # UnityPackage Godot
 
-- Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) in root of `res://`
-- Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) in root of `res://`
+- Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) at `res://FBX2glTF`
+  - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/4994628239 (Login to Github first)
+- Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) at `res://unitypackage_util`
+  - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/4997846696 (Login to Github first)
 - Make sure you can run `./FBX2glTF --help` and `./unitypackage_util --help` from command line, to check permissions
 - Config in `res://unitypackage_godot_config.tres`
 
@@ -11,6 +13,7 @@
 - Main scene in `res://unitypackage_godot/scenes/main.tscn`
 - Uncheck `Immediate Load Assets` in `res://unitypackage_godot_config.tres` to only load what is opened in the UI
 - `*.unity` files are converted if they are manually loaded in the UI
+- Each node is tagged with a meta named `ufile_ids`, containing a list of `{guid}:{component}` values mapping back to the original Unity component.
 
 ## How it works
 
