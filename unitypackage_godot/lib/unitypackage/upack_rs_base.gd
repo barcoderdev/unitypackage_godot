@@ -44,6 +44,7 @@ var package_path: String
 var catalog: Dictionary
 var debug_log: bool
 var unitypackage_util: String
+var fbx2gltf: String
 var enable_disk_storage: bool = false
 var enable_memcache: bool = false
 var upack_config: UPackConfig
@@ -122,15 +123,60 @@ func _files(dir_path: String) -> Array:
 #----------------------------------------
 
 func package_extract_binary(guid: String, fbx2gltf: bool) -> PackedByteArray:
-	var result = _util_execute([
-		package_path,
-		"extract",
-		guid,
-		# -f, --fbx2gltf
-		# -b, --base64
-		"-fb" if fbx2gltf else "-b"
-	], [""])[0]
-	return Marshalls.base64_to_raw(result)
+	if fbx2gltf && ["Windows", "UWP"].has(OS.get_name()):
+		# Binary pipes do not work on Windows
+		# Get the FBX file in base64
+		var data64 = _util_execute([
+			package_path,
+			"extract",
+			guid,
+			"--base64"
+		], [""])[0]
+
+		# Decode it
+		var raw_fbx = Marshalls.base64_to_raw(data64)
+
+		# Save to temp file
+		var temp_file = "%s/%s-%s.temp" % [
+			upack_config.extract_path,
+			str(Time.get_unix_time_from_system()),
+			str(Time.get_ticks_msec())
+		]
+		DirAccess.make_dir_recursive_absolute(temp_file.get_base_dir())
+		var file = FileAccess.open(temp_file, FileAccess.WRITE)
+		assert(file != null, "TempFileError")
+		file.store_buffer(raw_fbx)
+		file.close()
+
+		# Convert to GLB
+		_fbx2gltf_execute([
+			"-b",
+			"-i",
+			ProjectSettings.globalize_path(temp_file),
+			"-o",
+			ProjectSettings.globalize_path("%s.glb" % temp_file)
+		], false)
+
+		# Load the GLB
+		file = FileAccess.open("%s.glb" % temp_file, FileAccess.READ)
+		assert(file != null)
+		var buffer = file.get_buffer(file.get_length())
+		file.close()
+
+		DirAccess.remove_absolute(temp_file)
+		DirAccess.remove_absolute("%s.glb" % temp_file)
+
+		return buffer
+	else:
+		var result = _util_execute([
+			package_path,
+			"extract",
+			guid,
+			# -f, --fbx2gltf
+			# -b, --base64
+			"-fb" if fbx2gltf else "-b"
+		], [""])[0]
+		return Marshalls.base64_to_raw(result)
 
 #----------------------------------------
 
@@ -224,11 +270,23 @@ func _util_execute(arguments: PackedStringArray, default: Variant):
 
 #----------------------------------------
 
+func _fbx2gltf_execute(arguments: PackedStringArray, default: Variant):
+	print("UPackRS::Fbx2GltfExecute::%s %s" % [fbx2gltf, " ".join(arguments)])
+	var output = []
+	var result = OS.execute(ProjectSettings.globalize_path(fbx2gltf), arguments, output)
+	if result != 0:
+		push_error("Error _util_execute %d: %s %s = %s" % [result, fbx2gltf, arguments, output])
+		return default
+	return output
+
+#----------------------------------------
+
 func _init(_package_path: String, _upack_config: UPackConfig):
 	package_path = _package_path
 	upack_config = _upack_config
 
 	unitypackage_util = upack_config.unitypackage_util_path
+	fbx2gltf = upack_config.fbx2gltf_path
 	debug_log = upack_config.debug_log
 
 	enable_disk_storage = upack_config.enable_disk_storage

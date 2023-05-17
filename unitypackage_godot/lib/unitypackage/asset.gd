@@ -115,6 +115,10 @@ func asset_native_format_importer_prefab(root_node: Node3D, parent: Node3D = nul
 
 	trace("NativeFormatImporterPrefab", "Building", Color.GREEN)
 
+	if docs == null:
+		push_error("Asset::NativeFormatImporterPrefab::DocsMissing::%s" % self)
+		return null
+
 	var root_children_docs = docs.filter(_helper_is_root_node)
 	root_children_docs.sort_custom(_helper_sort_root_order)
 
