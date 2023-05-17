@@ -28,6 +28,8 @@ func asset_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
 			return asset_doc_mesh_filter(root_node, parent)
 		"Prefab":
 			return asset_doc_prefab(root_node, parent)
+		"PrefabInstance":
+			return asset_doc_prefab_instance(root_node, parent)
 		_:
 			push_error("AssetDoc::DocScene::UnsupportedType::%s" % data.type)
 			return null
@@ -143,6 +145,25 @@ func asset_doc_prefab(root_node: Node3D, parent: Node3D) -> Node3D:
 
 	set_created_by(node, "AssetDoc::Prefab")
 	append_ufile_ids(node, [self._ufile_id], "AssetDocPefab")
+	_apply_modifications(parent, node, self)
+
+	return node
+
+#----------------------------------------
+
+func asset_doc_prefab_instance(root_node: Node3D, parent: Node3D) -> Node3D:
+	trace("PrefabInstance", "%s::%s" % [
+		str(self),
+		"ROOT" if root_node == null else "CHILD"
+	], Color.ORANGE)
+
+	trace("PrefabInstance", "Building", Color.GREEN)
+
+	var prefab_doc = uurs.get_asset_by_ref(data.content.m_SourcePrefab)
+	var node = prefab_doc.asset_scene(root_node, parent)
+
+	set_created_by(node, "AssetDoc::PrefabInstance")
+	append_ufile_ids(node, [self._ufile_id], "AssetDocPrefabInstance")
 	_apply_modifications(parent, node, self)
 
 	return node
@@ -438,6 +459,8 @@ func _apply_component__game_object(root_node: Node3D, parent: Node3D, transform_
 	else:
 		transform_node.name = data.content.m_Name
 
+	transform_node.visible = data.content.m_IsActive == 1
+
 	append_ufile_ids(transform_node, [self._ufile_id], "ApplyComponentGameObject::%s" % self)
 
 	var component_refs = data.content.m_Component as Array
@@ -588,7 +611,6 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 			"m_CastShadows":				continue
 			"m_ReceiveShadows":				continue
 			"m_Layer":						continue
-			"m_Enabled":					continue
 			"Params.maxConvexHulls":		continue
 #			"m_LocalEulerAnglesHint.x":		continue
 #			"m_LocalEulerAnglesHint.y":		continue
@@ -672,6 +694,7 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 			"m_LocalEulerAnglesHint.z":	target.rotation.z = deg_to_rad(float(m.value))
 
 			"m_Name":					target.name = m.value
+			"m_Enabled":				target.visible = int(m.value) == 1
 			_:
 				push_warning("AssetDoc::ApplyModifications::UnexpectedPropertyPath::%s" % m)
 
