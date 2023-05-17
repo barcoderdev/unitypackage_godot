@@ -480,6 +480,16 @@ func _apply_component__game_object(root_node: Node3D, parent: Node3D, transform_
 	component_refs.sort_custom(_helper_sort_component_ref)
 
 	for comp_ref in component_refs:
+		if !comp_ref.component.has("guid") && comp_ref.component.fileID == self._file_id:
+			# Avoid recursion
+			trace("SkippingSelfReference", str(comp_ref), Color.ORANGE_RED)
+			push_warning("CompDoc::BuildGameObject::SkippingSelfReference::%s::%s" % [
+				self,
+				comp_ref
+			])
+			continue
+
+		trace("ApplyGameObjectComponent", str(comp_ref), Color.MEDIUM_SLATE_BLUE)
 		var comp = get_comp_doc_by_ref(comp_ref.component)
 		
 		if comp == null:
