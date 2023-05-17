@@ -266,7 +266,7 @@ func asset_image() -> Image:
 
 	var supported_formats = ["png", "bmp", "tga", "jpg", "jpeg", "webp"]
 	if !supported_formats.has(self.extension):
-		push_error("Asset::Image::NotImage")
+		push_error("Asset::Image::NotImage::%" % self)
 		return null
 
 	if asset_is_on_disk():
@@ -294,165 +294,116 @@ func asset_image() -> Image:
 
 func asset_image__load_image_from_buffer(image: Image, buffer: PackedByteArray) -> bool:
 	match data.content_type:
-		"image/png":
-			return image.load_png_from_buffer(buffer) == OK
-		"image/bmp":
-			return image.load_bmp_from_buffer(buffer) == OK
-		"image/tga":
-			return image.load_tga_from_buffer(buffer) == OK
-		"image/jpg", "image/jpeg":
-			return image.load_jpg_from_buffer(buffer) == OK
-		"image/webp":
-			return image.load_webp_from_buffer(buffer) == OK
-
+		"image/png":				return image.load_png_from_buffer(buffer) == OK
+		"image/bmp":				return image.load_bmp_from_buffer(buffer) == OK
+		"image/tga":				return image.load_tga_from_buffer(buffer) == OK
+		"image/jpg", "image/jpeg":	return image.load_jpg_from_buffer(buffer) == OK
+		"image/webp":				return image.load_webp_from_buffer(buffer) == OK
 	match self.extension:
-		"png":
-			return image.load_png_from_buffer(buffer) == OK
-		"bmp":
-			return image.load_bmp_from_buffer(buffer) == OK
-		"tga":
-			return image.load_tga_from_buffer(buffer) == OK
-		"jpg", "jpeg":
-			return image.load_jpg_from_buffer(buffer) == OK
-		"webp":
-			return image.load_webp_from_buffer(buffer) == OK
-
+		"png":			return image.load_png_from_buffer(buffer) == OK
+		"bmp":			return image.load_bmp_from_buffer(buffer) == OK
+		"tga":			return image.load_tga_from_buffer(buffer) == OK
+		"jpg", "jpeg":	return image.load_jpg_from_buffer(buffer) == OK
+		"webp":			return image.load_webp_from_buffer(buffer) == OK
 	return false
 
 #----------------------------------------
 
-func asset_material__main_tex(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
-	var tex = (mat_doc.content
-		.m_SavedProperties
-		.m_TexEnvs
-		.filter(func (tex):
-			return tex.has("_MainTex"))
-	)
-	if tex.size() == 0:
-		return
+func asset_material__m_TexEnvs(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
+	var shader_keywords = mat_doc.content.get("m_ShaderKeywords", "")
+	if shader_keywords == null:
+		shader_keywords = ""
 
-	tex = tex.front()._MainTex
-	if tex.m_Texture.fileID == 0:
-		return
+	for tex in mat_doc.content.m_SavedProperties.m_TexEnvs:
+		var name = tex.keys().front()
+		tex = tex[name]
 
-	var image_asset = uurs.get_asset_by_ref(tex.m_Texture)
-	if not image_asset is Asset:
-		push_warning("Asset::Material::_MainTexAssetMissing::%s::%s" % [
-			self,
-			tex.m_Texture
-		])
-		return
+		if tex.m_Texture.fileID == 0 && !tex.m_Texture.has("guid"):
+			continue
 
-	var image = image_asset.asset_image()
-	if not image is Image:
-		push_warning("Asset::Material::ImageFailed")
+		var image_asset = uurs.get_asset_by_ref(tex.m_Texture)
+		if not image_asset is Asset:
+			push_warning("Asset::Material::TextureAssetMissing::%s::%s" % [
+				self,
+				tex.m_Texture
+			])
+			continue
 
-	if image is Image:
+		var image = image_asset.asset_image()
+		if not image is Image:
+			push_warning("Asset::Material::ImageFailed")
+			continue
+
 		var texture = ImageTexture.new()
 		texture.image = image
-		material.albedo_texture = texture
+
+		match name:
+			# TODO
+			"_BumpMap": pass
+			"_DetailAlbedoMap": pass
+			"_DetailMask": pass
+			"_DetailNormalMap": pass
+			"_EmissionMap":
+				if shader_keywords.contains("_EMISSION"):
+					material.emission_enabled = true
+					material.emission_texture = texture
+					material.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
+			"_MainTex":
+				material.albedo_texture = texture
+			"_MetallicGlossMap":
+				# TODO: Test if this is correct behavior
+				if shader_keywords.contains("_METALLICGLOSSMAP"):
+					material.metallic_texture = texture
+			"_OcclusionMap": pass
+			"_ParallaxMap": pass
 
 #----------------------------------------
 
-func asset_material__emission_map(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
-	if mat_doc.content.m_ShaderKeywords == null || !mat_doc.content.m_ShaderKeywords.contains("_EMISSION"):
-		return
-
-	var tex = (mat_doc.content
-		.m_SavedProperties
-		.m_TexEnvs
-		.filter(func (tex):
-			return tex.has("_EmissionMap"))
-	)
-	if tex.size() == 0:
-		return
-
-	tex = tex.front()._EmissionMap
-	if tex.m_Texture.fileID == 0:
-		return
-
-	var image_asset = uurs.get_asset_by_ref(tex.m_Texture)
-	if not image_asset is Asset:
-		push_warning("Asset::Material::_EmissionMapAssetMissing::%s::%s" % [
-			self,
-			tex.m_Texture
-		])
-		return
-
-	var image = image_asset.asset_image()
-	if not image is Image:
-		push_warning("Asset::Material::ImageFailed")
-
-	if image is Image:
-		var texture = ImageTexture.new()
-		texture.image = image
-		material.emission_enabled = true
-		material.emission_texture = texture
-		material.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
-
-#----------------------------------------
-
-func asset_material__metallic_gloss_map(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
-	if mat_doc.content.m_ShaderKeywords == null || !mat_doc.content.m_ShaderKeywords.contains("_METALLICGLOSSMAP"):
-		return
-
-	var tex = (mat_doc.content
-		.m_SavedProperties
-		.m_TexEnvs
-		.filter(func (tex):
-			return tex.has("_MetallicGlossMap"))
-	)
-	if tex.size() == 0:
-		return
-
-	tex = tex.front()._MetallicGlossMap
-	if tex.m_Texture.fileID == 0:
-		return
-
-	var image_asset = uurs.get_asset_by_ref(tex.m_Texture)
-	if not image_asset is Asset:
-		push_warning("Asset::Material::_MetallicGlossMapAssetMissing::%s::%s" % [
-			self,
-			tex.m_Texture
-		])
-		return
-
-	var image = image_asset.asset_image()
-	if not image is Image:
-		push_warning("Asset::Material::ImageFailed")
-
-	if image is Image:
-		var texture = ImageTexture.new()
-		texture.image = image
-		material.metallic_texture = texture
-
-#----------------------------------------
-
-func asset_material__color(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
+func asset_material__m_Colors(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
 	for color in mat_doc.content.m_SavedProperties.m_Colors:
-		if color.has("_Color"):
-			material.albedo_color = Color(
-				float(color._Color.r),
-				float(color._Color.g),
-				float(color._Color.b),
-				float(color._Color.a)
-			)
-		elif color.has("_EmissionColor"):
-			material.emission = Color(
-				float(color._EmissionColor.r),
-				float(color._EmissionColor.g),
-				float(color._EmissionColor.b),
-				float(color._EmissionColor.a)
-			)
+		match color.keys().front():
+			"_Color":
+				material.albedo_color = Color(
+					float(color._Color.r),
+					float(color._Color.g),
+					float(color._Color.b),
+					float(color._Color.a)
+				)
+			"_EmisColor": pass
+			"_EmissionColorUI": pass
+			"_EmissionColor":
+				material.emission = Color(
+					float(color._EmissionColor.r),
+					float(color._EmissionColor.g),
+					float(color._EmissionColor.b),
+					float(color._EmissionColor.a)
+				)
+			"_TintColor": pass
 
 #----------------------------------------
 
-func asset_material__floats(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
+func asset_material__m_Floats(material: StandardMaterial3D, mat_doc: AssetDoc) -> void:
 	for f in mat_doc.content.m_SavedProperties.m_Floats:
-		if f.has("_Mode"):
-			material.transparency = (f._Mode == 1)
-		elif f.has("_Metallic"):
-			material.metallic = float(f._Metallic)
+		match f.keys().front():
+			# TODO
+			"_BumpScale": pass
+			"_Cutoff": pass
+			"_DetailNormalMapScale": pass
+			"_DstBlend": pass
+			"_Glossiness": pass
+			"_GlossMapScale": pass
+			"_GlossyReflections": pass
+			"_Metallic":
+				material.metallic = float(f._Metallic)
+			"_Mode":
+				material.transparency = (f._Mode == 1)
+			"_OcclusionStrength": pass
+			"_Parallax": pass
+			"_SmoothnessTextureChannel": pass
+			"_SpecularHighlights": pass
+			"_SrcBlend": pass
+			"_UVSec": pass
+			"_ZWrite": pass
 
 #----------------------------------------
 
@@ -486,15 +437,10 @@ func asset_material() -> Material:
 
 	var material = StandardMaterial3D.new()
 	material.resource_name = mat_doc.content.m_Name
-
-	asset_material__main_tex(material, mat_doc)
-	asset_material__emission_map(material, mat_doc)
-
-	# TODO: Find a test for metallic gloss:
-	asset_material__metallic_gloss_map(material, mat_doc)
 	
-	asset_material__color(material, mat_doc)
-	asset_material__floats(material, mat_doc)
+	asset_material__m_TexEnvs(material, mat_doc)
+	asset_material__m_Colors(material, mat_doc)
+	asset_material__m_Floats(material, mat_doc)
 
 	data._memcache_material = asset_save_resource_to_disk(material, "Asset::Material")
 	return data._memcache_material

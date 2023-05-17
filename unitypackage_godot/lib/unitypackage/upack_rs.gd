@@ -46,12 +46,12 @@ func load_catalog(callback: Callable = Callable()) -> bool:
 
 func get_asset_by_ref(file_ref: Dictionary) -> Asset:
 	if !file_ref.has("guid"):
-		push_error("UPackRS::AssetByRef::GuidMissing")
+		push_error("UPackRS::AssetByRef::GuidMissing::%s" % file_ref)
 		return null
 
 	var guid = file_ref.guid
 	if not guid is String:
-		push_error("UPackRS::AssetByRef::BadGuid")
+		push_error("UPackRS::AssetByRef::BadGuid::%s" % guid)
 		return null
 
 	return get_asset(file_ref.guid)

@@ -8,11 +8,16 @@ class_name AssetDoc extends AssetDocBase
 
 #----------------------------------------
 
-const COMPONENT_PROCESSING_SEQUENCE = {
-	"Transform": 0,
-	"MeshRenderer": 30,
-	"MeshFilter": 20
-}
+func manual_mesh_patch(node: Node, node_name: String):
+	# Temporary Scale fix for SciFi City
+	# Not sure how these are scaled correctly in Unity, maybe something in the FBX?
+	var rescale = ["SM_Sign_Billboard_Large_", "SM_Prop_Posters_", "SM_Prop_Cables_"]
+	for r in rescale:
+		if node_name.contains(r):
+			trace("ManualMeshPatch", "Rescaling::%s" % node_name, Color.ORANGE)
+			node.scale *= 0.1
+			node.position *= 0.1
+			return
 
 #----------------------------------------
 
@@ -106,7 +111,7 @@ func asset_doc_stripped_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 		return null
 
 	if not prefab_asset is Asset:
-		breakpoint
+		push_error("AssetDoc::StrippedTransform::PrefabAssetMissing::%s" % self)
 		return null
 
 	var node = _asset_doc_stripped_transform__build(root_node, parent, prefab_asset, prefab_doc)
@@ -164,6 +169,9 @@ func asset_doc_prefab_instance(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("PrefabInstance", "Building", Color.GREEN)
 
 	var prefab_doc = uurs.get_asset_by_ref(data.content.m_SourcePrefab)
+	if prefab_doc == null:
+		push_error("AssetDoc::PrefabInstance::SourcePrefabMissing::%s" % self)
+		return null
 	var node = prefab_doc.asset_scene(root_node, parent)
 
 	set_created_by(node, "AssetDoc::PrefabInstance")
@@ -249,7 +257,10 @@ func _asset_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tr
 	var scene: Node = _asset_doc_mesh_filter__mesh_from_ref__gltf_scene(mesh_asset)
 
 	if scene == null:
-		push_error("AssetDoc::MeshFilter::GltfSceneFailed")
+		push_error("AssetDoc::MeshFilter::GltfSceneFailed::%s::%s" % [
+			mesh_asset,
+			mesh_ref
+		])
 		return
 
 	var mesh
@@ -341,20 +352,9 @@ func _asset_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tr
 	else:
 		# Use transform origin for offset
 		instance.transform.origin = search.position
-		scifi_fix(instance, mesh_name)
+		manual_mesh_patch(instance, mesh_name)
 		transform_node.add_child(instance)
 		instance.owner = choose_correct_owner(root_node, parent, transform_node)
-
-#----------------------------------------
-
-func scifi_fix(node: Node, node_name: String):
-	# Temporary Scale fix for SciFi City
-	var rescale = ["SM_Sign_Billboard_Large_", "SM_Prop_Posters_", "SM_Prop_Cables_"]
-	for r in rescale:
-		if (node_name as String).contains(r):
-			node.scale *= 0.1
-			node.position *= 0.1
-			return
 
 #----------------------------------------
 
@@ -383,7 +383,10 @@ func _asset_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, me
 		if entry.size() > 0:
 			mesh_name = entry[0].second
 		if mesh_name == null:
-			push_error("AssetDoc::MeshFilter::internalIDToNameTable::MissingMeshName::%s" % mesh_ref)
+			push_error("AssetDoc::MeshFilter::internalIDToNameTable::MissingMeshName::%s::%s" % [
+				mesh_ref,
+				mesh_asset.meta.content.internalIDToNameTable
+			])
 			return null
 	else:
 		push_error("AssetDoc::MeshFilter::MissingMeshLookupDict::%s" % mesh_asset)
@@ -545,6 +548,12 @@ func _apply_component__mesh_renderer(_root_node: Node3D, _parent: Node3D, transf
 
 #----------------------------------------
 
+const COMPONENT_PROCESSING_SEQUENCE = {
+	"Transform": 0,
+	"MeshRenderer": 30,
+	"MeshFilter": 20
+}
+
 func _helper_sort_component_ref(a, b):
 	var comp_a = get_asset_doc_by_ref(a.component)
 	var comp_b = get_asset_doc_by_ref(b.component)
@@ -606,9 +615,9 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 	var made_editable: bool = false
 
 	for m in prefab_doc.content.m_Modification.m_Modifications:
+
 		# Stop these from generating TargetMissing warnings
 		# TODO: Implement at some point
-
 		match m.propertyPath:
 			"m_Controller":					continue
 			"m_RootOrder":					continue
@@ -624,6 +633,7 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 			"m_Mesh":						continue
 			"m_Convex":						continue
 			"prewarm":						continue
+			"m_StaticEditorFlags":			continue
 
 		if !m.target.has("guid") || !m.target.has("fileID"):
 			push_error("AssetDoc::ApplyModifications::InvalidTarget::%s" % m.target)
@@ -681,6 +691,15 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: AssetDoc):
 			assert(m.has("objectReference"))
 			_apply_modifications__material(parent, node, propertyPaths[2], m.objectReference)
 			continue
+
+		# Stop these from generating TargetMissing warnings
+		# TODO: Implement at some point
+		match propertyPaths[0]:
+			"InitialModule":	continue
+			"NoiseModule":		continue
+			"EmissionModule":	continue
+			"ShapeModule":		continue
+			"ColorModule":		continue
 
 		# _appends_mods(target, m)
 		match m.propertyPath:

@@ -122,8 +122,8 @@ func _files(dir_path: String) -> Array:
 
 #----------------------------------------
 
-func package_extract_binary(guid: String, fbx2gltf: bool) -> PackedByteArray:
-	if fbx2gltf && ["Windows", "UWP"].has(OS.get_name()):
+func package_extract_binary(guid: String, _fbx2gltf: bool) -> PackedByteArray:
+	if _fbx2gltf && ["Windows", "UWP"].has(OS.get_name()):
 		# Binary pipes do not work on Windows
 		# Get the FBX file in base64
 		var data64 = _util_execute([
@@ -174,7 +174,7 @@ func package_extract_binary(guid: String, fbx2gltf: bool) -> PackedByteArray:
 			guid,
 			# -f, --fbx2gltf
 			# -b, --base64
-			"-fb" if fbx2gltf else "-b"
+			"-fb" if _fbx2gltf else "-b"
 		], [""])[0]
 		return Marshalls.base64_to_raw(result)
 
