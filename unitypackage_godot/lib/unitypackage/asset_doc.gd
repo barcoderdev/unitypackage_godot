@@ -1,5 +1,9 @@
 #----------------------------------------
 
+# This wraps the individual yaml documents in the {guid}/asset file
+# if {guid}/asset is a yaml file in the package
+# All converted to a dictionary
+
 class_name AssetDoc extends AssetDocBase
 
 #----------------------------------------
@@ -516,7 +520,7 @@ func _apply_component__mesh_renderer(_root_node: Node3D, _parent: Node3D, transf
 	trace("ApplyComponent_MeshRenderer")
 
 	var materials = data.content.m_Materials.map(func(mat_ref):
-		# TODO
+		# TODO: Figure out what this guid represents
 		if mat_ref.guid == "0000000000000000f000000000000000":
 			return StandardMaterial3D.new()
 		else:

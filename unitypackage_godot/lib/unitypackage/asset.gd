@@ -1,5 +1,7 @@
 #----------------------------------------
 
+# This wraps the all of the `{guid}/` data
+
 class_name Asset extends AssetBase
 
 #----------------------------------------
@@ -28,8 +30,6 @@ func asset_scene(root_node: Node3D, parent: Node3D = null):
 			return asset_default_importer_prefab(root_node, parent)
 		"PrefabImporter":
 			return asset_native_format_importer_prefab(root_node, parent)
-#			push_warning("Asset::AssetScene::PrefabImporter::TODO::%s" % self)
-#			return null
 		_:
 			push_error("Asset::AssetScene::UnsupportedType::%s" % self.type)
 			return null
@@ -165,24 +165,6 @@ func asset_native_format_importer_material(_root_node: Node3D, _parent: Node3D =
 func asset_texture_importer(_root_node: Node3D, _parent: Node3D = null) -> Node3D:
 	trace("TextureImporter")
 
-#	if uurs.enable_memcache && data.has("_memcache_texture_importer"):
-#		trace("TextureImporter", "FromMemCache", Color.GREEN)
-#		return instantiate(
-#			root_node,
-#			parent,
-#			data._memcache_texture_importer, "TextureImporter 1"
-#		)
-#
-#	if asset_is_on_disk():
-#		trace("TextureImporter", "FromDisk", Color.GREEN)
-#		data._memcache_texture_importer = asset_packed_scene_from_disk()
-#		return instantiate(
-#			root_node,
-#			parent,
-#			data._memcache_texture_importer,
-#			"TextureImporter 2"
-#		)
-
 	trace("TextureImporter", "Building", Color.GREEN)
 
 	var image = asset_image()
@@ -208,14 +190,6 @@ func asset_texture_importer(_root_node: Node3D, _parent: Node3D = null) -> Node3
 	append_ufile_ids(node, [data._ufile_id], "TextureImporter")
 
 	return node
-
-#	data._memcache_texture_importer = asset_save_node_get_packed_scene(node, "TextureImporter")
-#	return instantiate(
-#		root_node,
-#		parent,
-#		data._memcache_texture_importer,
-#		"TextureImporter 3"
-#	)
 
 #----------------------------------------
 
@@ -515,7 +489,10 @@ func asset_material() -> Material:
 
 	asset_material__main_tex(material, mat_doc)
 	asset_material__emission_map(material, mat_doc)
+
+	# TODO: Find a test for metallic gloss:
 	asset_material__metallic_gloss_map(material, mat_doc)
+	
 	asset_material__color(material, mat_doc)
 	asset_material__floats(material, mat_doc)
 

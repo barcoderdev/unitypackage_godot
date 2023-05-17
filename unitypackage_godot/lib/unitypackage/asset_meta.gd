@@ -1,5 +1,7 @@
 #----------------------------------------
 
+# This wraps the {guid}/asset.meta yaml file as a dictionary
+
 class_name AssetMeta
 
 #----------------------------------------
