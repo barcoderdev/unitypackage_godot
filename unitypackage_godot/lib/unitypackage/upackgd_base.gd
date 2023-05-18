@@ -271,7 +271,7 @@ func _package_list(dir: String):
 #----------------------------------------
 
 func _util_execute(arguments: PackedStringArray, default: Variant):
-	print("UPackGD::UtilExecute::%s %s" % [unitypackage_util, " ".join(arguments)])
+	# print("UPackGD::UtilExecute::%s %s" % [unitypackage_util, " ".join(arguments)])
 	var output = []
 	var result = OS.execute(ProjectSettings.globalize_path(unitypackage_util), arguments, output)
 	if result != 0:
@@ -282,7 +282,7 @@ func _util_execute(arguments: PackedStringArray, default: Variant):
 #----------------------------------------
 
 func _fbx2gltf_execute(arguments: PackedStringArray, default: Variant):
-	print("UPackGD::Fbx2GltfExecute::%s %s" % [fbx2gltf, " ".join(arguments)])
+	# print("UPackGD::Fbx2GltfExecute::%s %s" % [fbx2gltf, " ".join(arguments)])
 	var output = []
 	var result = OS.execute(ProjectSettings.globalize_path(fbx2gltf), arguments, output)
 	if result != 0:
