@@ -16,6 +16,40 @@
 - `*.unity` files are converted if they are manually loaded in the UI
 - Each node is tagged with a meta named `ufile_ids`, containing a list of `{guid}:{component}` values mapping back to the original Unity component.
 
+## How to use
+
+Initial setup:
+- Clone this repo and add compiled unitypackage_util and FBX2glTF to the root of the project
+- Check Inspector for `res://unitypackage_godot_config.res`
+  - Debug Log:
+    - "On" for flashy console logs and debugging
+    - "Off" to run a little faster
+  - Immediate Load Assets:
+    - "On" to build all prefabs/materials when loading packages
+    - "Off" to only build assets selected in the file picker
+    - `.unity` files must be manually selected to build either way
+  - Default Open Path: Optional default location for file open dialog
+
+Import UnityPackage:
+- Run the project
+- Press `Import UnityPackage` button in upper left
+- Select a `.unitypackage` file
+- Let it load
+- Explore assets in the pack
+- Close it or stop running
+- Let the freshly imported assets actually import
+- Explore the assets that are now in the project itself, default location: `res://imports/`
+  - Each UnityPackage generates a folder
+  - Each folder contains `catalog.json` as a cached file to load faster next run
+  - Each folder contains `location.txt` pointing to where the UnityPackage file is located
+
+Fixing Import Code:
+- Adjust the import code
+- Clear out what needs to be reimported in `res://imports/`
+  - Individual files can be deleted to speed up the process
+- Run & import again
+- Submit your fixes back to the repo
+
 ## How it works
 
 - `OS.execute` is used to call `unitypackage_util`
@@ -56,7 +90,7 @@ Importers:
 - NativeFormatImporter
 - PrefabImporter
 - TextureImporter
-- ShaderImporter
+- ShaderImporter (See [Shaders](#shaders) section)
 
 ## Todo
 

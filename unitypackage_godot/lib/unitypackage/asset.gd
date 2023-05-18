@@ -508,6 +508,15 @@ func asset_shader_importer(_root_node, _parent) -> Node3D:
 
 #----------------------------------------
 
+var ShaderTypeMap = {
+	"float2" = "vec2",
+	"float3" = "vec3",
+	"float4" = "vec4",
+	"float2x2" = "mat2",
+	"float3x3" = "mat3",
+	"float4x4" = "mat4"
+}
+
 func asset_shader() -> Shader:
 	trace("Shader")
 
@@ -523,8 +532,8 @@ func asset_shader() -> Shader:
 			var chunks = Array(stmt.replace("\t", " ").split(" "))
 			var words = chunks.filter(func(x: String): return x.length() > 0)
 			if words.size() > 2 && words[0] == "uniform":
-				match words[1]:
-					"float4": words[1] = "vec4"
+				if ShaderTypeMap.has(words[1]):
+					words[1] = ShaderTypeMap[words[1]]
 				uniforms.push_back(words.slice(0, 3))
 
 	var uniforms_text = (
