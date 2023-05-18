@@ -35,6 +35,7 @@
 
 Original shaders are stored in `.txt` files along-side new placeholder shaders.
 Uniforms from the original shader are copied into the placeholder so materials maintain their shader properties.
+Shader property values are also set as meta data on the materials as backup.
 
 ## Currently Implemented
 
@@ -54,6 +55,7 @@ Importers:
 - NativeFormatImporter
 - PrefabImporter
 - TextureImporter
+- ShaderImporter
 
 ## Todo
 
