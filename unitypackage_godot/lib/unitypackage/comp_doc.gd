@@ -446,10 +446,12 @@ func apply_component(root_node: Node3D, parent: Node3D, transform_node: Node3D) 
 			_apply_component__transform(root_node, parent, transform_node)
 		"SkinnedMeshRenderer":
 			_apply_component__skinned_mesh_renderer(root_node, parent, transform_node)
+		"Light":
+			__apply_component__light(root_node, parent, transform_node)
 		"BoxCollider", "CapsuleCollider", "MeshCollider", "SphereCollider":
 			# TODO
 			trace("ApplyComponent", "TODO::%s" % self)
-		"Animator", "Animation", "AudioListener", "Behaviour", "Camera", "Light", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent":
+		"Animator", "Animation", "AudioListener", "Behaviour", "Camera", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent":
 			# Don't need?
 			trace("ApplyComponent", "Skipping::%s" % self)
 		"ParticleSystem", "ParticleSystemRenderer":
@@ -457,6 +459,40 @@ func apply_component(root_node: Node3D, parent: Node3D, transform_node: Node3D) 
 			trace("ApplyComponent", "UnlikelyTODO::%s" % self)
 		_:
 			push_error("CompDoc::Apply::UnsupportedType::%s" % data.type)
+
+#----------------------------------------
+
+enum UnityLightType {
+	Spot = 0,
+	Directional = 1,
+	Point = 2,
+	Area = 3,
+}
+
+func __apply_component__light(root_node: Node3D, parent: Node3D, transform_node: Node3D) -> void:
+	# TODO: More attributes
+	var light: Light3D
+	var light_type = data.content.m_Type as UnityLightType
+	match light_type:
+		UnityLightType.Spot:
+			light = SpotLight3D.new()
+			light.name = "_Spot"
+			light.spot_angle = data.content.m_SpotAngle
+		UnityLightType.Directional:
+			light = DirectionalLight3D.new()
+			light.name = "_Directional"
+		UnityLightType.Point:
+			light = SpotLight3D.new()
+			light.name = "_Point"
+		UnityLightType.Area:
+			light = OmniLight3D.new()
+			light.name = "_Area"
+
+	if light != null:
+		light.visible = data.content.m_Enabled == 1
+		light.light_color = to_color(data.content.m_Color)
+		transform_node.add_child(light)
+		light.owner = choose_correct_owner(root_node, parent, transform_node)
 
 #----------------------------------------
 

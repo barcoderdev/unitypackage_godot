@@ -47,6 +47,7 @@ Components:
 - SkinnedMeshRenderer (partially, needs Skeleton3D)
 - Transform
 - Stripped Transform
+- Light (very basic atm)
 
 Importers:
 
