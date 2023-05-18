@@ -527,7 +527,12 @@ func asset_shader() -> Shader:
 					"float4": words[1] = "vec4"
 				uniforms.push_back(words.slice(0, 3))
 
-	var uniforms_text = ";\n".join(uniforms.map(func(x): return " ".join(x))) + ";\n"
+	var uniforms_text = (
+		";\n".join(uniforms.map(func(x): return " ".join(x))) + ";\n"
+		if uniforms.size() > 0
+		else ""
+	)
+
 	gdshader.code = "shader_type spatial;\n\n%s\n\nvoid fragment() { ALBEDO = vec3(1.0, 0.11, 1.0); }\n" % uniforms_text
 
 	return asset_save_shader_to_disk(gdshader, unity_shader, "Shader")
