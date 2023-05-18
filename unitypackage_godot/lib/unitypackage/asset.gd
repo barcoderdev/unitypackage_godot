@@ -30,6 +30,8 @@ func asset_scene(root_node: Node3D, parent: Node3D = null):
 			return asset_default_importer_prefab(root_node, parent)
 		"PrefabImporter":
 			return asset_native_format_importer_prefab(root_node, parent)
+		"ShaderImporter":
+			return asset_shader_importer(root_node, parent)
 		_:
 			push_error("Asset::Scene::UnsupportedType::%s" % self.type)
 			return null
@@ -266,7 +268,7 @@ func asset_image() -> Image:
 
 	var supported_formats = ["png", "bmp", "tga", "jpg", "jpeg", "webp"]
 	if !supported_formats.has(self.extension):
-		push_error("Asset::Image::NotImage::%" % self)
+		push_error("Asset::Image::NotImage::%s" % self)
 		return null
 
 	if asset_is_on_disk():
@@ -281,14 +283,39 @@ func asset_image() -> Image:
 	var image: Image
 
 	if data.has("_disk_storage_binary_path"):
+		trace("Image::FromFile")
 		image = Image.load_from_file(data._disk_storage_binary_path)
 	else:
 		image = Image.new()
+		trace("Image::FromBuffer")
 		if !asset_image__load_image_from_buffer(image, buffer):
 			push_error("Asset::Image::LoadFromBufferFailed")
 
 	data._memcache_image = image
 	return data._memcache_image
+
+#----------------------------------------
+
+func asset_texture() -> ImageTexture:
+	trace("Texture")
+
+	var tex_path = "%s.tex" % asset_path_on_disk().get_basename()
+	if FileAccess.file_exists(tex_path):
+		trace("Texture", "Loading")
+		return load(tex_path)
+
+	var image = asset_image()
+	if image == null:
+		return null
+
+	var tex = ImageTexture.create_from_image(image)
+	if tex == null:
+		return null
+
+	trace("Texture", "Saving")
+	ResourceSaver.save(tex, tex_path)
+	trace("Texture", "Loading")
+	return load(tex_path)
 
 #----------------------------------------
 
@@ -306,104 +333,6 @@ func asset_image__load_image_from_buffer(image: Image, buffer: PackedByteArray) 
 		"jpg", "jpeg":	return image.load_jpg_from_buffer(buffer) == OK
 		"webp":			return image.load_webp_from_buffer(buffer) == OK
 	return false
-
-#----------------------------------------
-
-func asset_material__m_TexEnvs(material: StandardMaterial3D, mat_doc: CompDoc) -> void:
-	var shader_keywords = mat_doc.content.get("m_ShaderKeywords", "")
-	if shader_keywords == null:
-		shader_keywords = ""
-
-	for tex in mat_doc.content.m_SavedProperties.m_TexEnvs:
-		var name = tex.keys().front()
-		tex = tex[name]
-
-		if tex.m_Texture.fileID == 0 && !tex.m_Texture.has("guid"):
-			continue
-
-		var image_asset = upack.get_asset_by_ref(tex.m_Texture)
-		if not image_asset is Asset:
-			push_warning("Asset::Material::TextureAssetMissing::%s::%s" % [
-				self,
-				tex.m_Texture
-			])
-			continue
-
-		var image = image_asset.asset_image()
-		if not image is Image:
-			push_warning("Asset::Material::ImageFailed")
-			continue
-
-		var texture = ImageTexture.new()
-		texture.image = image
-
-		match name:
-			# TODO
-			"_BumpMap": pass
-			"_DetailAlbedoMap": pass
-			"_DetailMask": pass
-			"_DetailNormalMap": pass
-			"_EmissionMap":
-				if shader_keywords.contains("_EMISSION"):
-					material.emission_enabled = true
-					material.emission_texture = texture
-					material.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
-			"_MainTex":
-				material.albedo_texture = texture
-			"_MetallicGlossMap":
-				# TODO: Test if this is correct behavior
-				if shader_keywords.contains("_METALLICGLOSSMAP"):
-					material.metallic_texture = texture
-			"_OcclusionMap": pass
-			"_ParallaxMap": pass
-
-#----------------------------------------
-
-func asset_material__m_Colors(material: StandardMaterial3D, mat_doc: CompDoc) -> void:
-	for color in mat_doc.content.m_SavedProperties.m_Colors:
-		match color.keys().front():
-			"_Color":
-				material.albedo_color = Color(
-					float(color._Color.r),
-					float(color._Color.g),
-					float(color._Color.b),
-					float(color._Color.a)
-				)
-			"_EmisColor": pass
-			"_EmissionColorUI": pass
-			"_EmissionColor":
-				material.emission = Color(
-					float(color._EmissionColor.r),
-					float(color._EmissionColor.g),
-					float(color._EmissionColor.b),
-					float(color._EmissionColor.a)
-				)
-			"_TintColor": pass
-
-#----------------------------------------
-
-func asset_material__m_Floats(material: StandardMaterial3D, mat_doc: CompDoc) -> void:
-	for f in mat_doc.content.m_SavedProperties.m_Floats:
-		match f.keys().front():
-			# TODO
-			"_BumpScale": pass
-			"_Cutoff": pass
-			"_DetailNormalMapScale": pass
-			"_DstBlend": pass
-			"_Glossiness": pass
-			"_GlossMapScale": pass
-			"_GlossyReflections": pass
-			"_Metallic":
-				material.metallic = float(f._Metallic)
-			"_Mode":
-				material.transparency = (f._Mode == 1)
-			"_OcclusionStrength": pass
-			"_Parallax": pass
-			"_SmoothnessTextureChannel": pass
-			"_SpecularHighlights": pass
-			"_SrcBlend": pass
-			"_UVSec": pass
-			"_ZWrite": pass
 
 #----------------------------------------
 
@@ -429,20 +358,178 @@ func asset_material() -> Material:
 		push_error("_Material::CompDocNotFound::%s" % main_object_file_id)
 		return null
 
-	if mat_doc.content.m_Shader.guid != "0000000000000000f000000000000000":
-		push_warning("Asset::_Material::NonStandardShader::%s::%s" % [
-			mat_doc,
-			mat_doc.content.m_Shader
-		])
+	var material
 
-	var material = StandardMaterial3D.new()
-	material.resource_name = mat_doc.content.m_Name
-	
+	if mat_doc.content.m_Shader.guid != "0000000000000000f000000000000000":
+		# Build the placeholder
+		var shader = upack.get_asset_by_ref(mat_doc.content.m_Shader)
+
+#		push_warning("Asset::_Material::NonStandardShader::%s::%s" % [
+#			pathname,
+#			shader.pathname
+#		])
+
+		trace("Material", "ShaderPlaceholder", Color.YELLOW_GREEN)
+		material = ShaderMaterial.new()
+		material.set_meta("shader_placeholder", shader.pathname)
+		material.shader = shader.asset_shader()
+	else:
+		material = StandardMaterial3D.new()
+
+	trace("Material", "Attributes", Color.CORAL)
 	asset_material__m_TexEnvs(material, mat_doc)
 	asset_material__m_Colors(material, mat_doc)
 	asset_material__m_Floats(material, mat_doc)
 
+	material.resource_name = mat_doc.content.m_Name
+
 	data._memcache_material = asset_save_resource_to_disk(material, "Asset::Material")
 	return data._memcache_material
+
+#----------------------------------------
+
+func asset_material__m_TexEnvs(material, mat_doc: CompDoc) -> void:
+	var shader_keywords = mat_doc.content.get("m_ShaderKeywords", "")
+	if shader_keywords == null:
+		shader_keywords = ""
+
+	for tex in mat_doc.content.m_SavedProperties.m_TexEnvs:
+		var name = tex.keys().front()
+		tex = tex[name]
+
+		if tex.m_Texture.fileID == 0 && !tex.m_Texture.has("guid"):
+			continue
+
+		if tex.m_Texture.guid == "0000000000000000f000000000000000":
+			# TODO
+			continue
+
+		var image_asset = upack.get_asset_by_ref(tex.m_Texture)
+		if not image_asset is Asset:
+			push_warning("Asset::Material::TextureAssetMissing::%s::%s" % [
+				pathname,
+				tex.m_Texture
+			])
+			continue
+
+		if material is ShaderMaterial:
+			material.set_meta("tex%s" % name, image_asset.pathname)
+			material.set_shader_parameter(name, image_asset.asset_texture()) # This bloats the file instead of using a reference
+			continue
+
+#		var image = image_asset.asset_image()
+#		if not image is Image:
+#			push_warning("Asset::Material::ImageFailed")
+#			continue
+#		var texture = ImageTexture.create_from_image(image)
+		var texture = image_asset.asset_texture()
+
+		match name:
+			# TODO
+			"_BumpMap": pass
+			"_DetailAlbedoMap": pass
+			"_DetailMask": pass
+			"_DetailNormalMap": pass
+			"_EmissionMap":
+				if shader_keywords.contains("_EMISSION"):
+					material.emission_enabled = true
+					material.emission_texture = texture
+					material.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
+			"_MainTex":
+				material.albedo_texture = texture
+			"_MetallicGlossMap":
+				# TODO: Test if this is correct behavior
+				if shader_keywords.contains("_METALLICGLOSSMAP"):
+					material.metallic_texture = texture
+			"_OcclusionMap": pass
+			"_ParallaxMap": pass
+
+#----------------------------------------
+
+func asset_material__m_Colors(material, mat_doc: CompDoc) -> void:
+	for _color in mat_doc.content.m_SavedProperties.m_Colors:
+		var name = _color.keys().front()
+		var color = to_color(_color[name])
+
+		if material is ShaderMaterial:
+			material.set_shader_parameter(name, color)
+			material.set_meta("color%s" % name, _color[name])
+			continue
+
+		match name:
+			"_Color":
+				material.albedo_color = color
+			"_EmisColor": pass
+			"_EmissionColorUI": pass
+			"_EmissionColor":
+				material.emission = color
+			"_TintColor": pass
+
+#----------------------------------------
+
+func asset_material__m_Floats(material, mat_doc: CompDoc) -> void:
+	for f in mat_doc.content.m_SavedProperties.m_Floats:
+		var name = f.keys().front()
+
+		if material is ShaderMaterial:
+			material.set_shader_parameter(name, f[name])
+			material.set_meta("float%s" % name, f[name])
+			continue
+
+		match name:
+			# TODO
+			"_BumpScale": pass
+			"_Cutoff": pass
+			"_DetailNormalMapScale": pass
+			"_DstBlend": pass
+			"_Glossiness": pass
+			"_GlossMapScale": pass
+			"_GlossyReflections": pass
+			"_Metallic":
+				material.metallic = float(f._Metallic)
+			"_Mode":
+				material.transparency = (f._Mode == 1)
+			"_OcclusionStrength": pass
+			"_Parallax": pass
+			"_SmoothnessTextureChannel": pass
+			"_SpecularHighlights": pass
+			"_SrcBlend": pass
+			"_UVSec": pass
+			"_ZWrite": pass
+
+#----------------------------------------
+# *.shader
+# Just create a placeholder to be manually corrected later
+# This way the materials will point to the "correct" shader still
+func asset_shader_importer(_root_node, _parent) -> Node3D:
+	trace("ShaderImporter")
+	asset_shader()
+	return Node3D.new()
+
+#----------------------------------------
+
+func asset_shader() -> Shader:
+	trace("Shader")
+
+	if asset_is_on_disk():
+		return _asset_load_from_disk()
+
+	var gdshader = Shader.new()
+	var unity_shader = self.load_binary(false)
+
+	var uniforms = [];
+	for line in Array(unity_shader.get_string_from_utf8().split("\n")):
+		for stmt in line.split(";"):
+			var chunks = Array(stmt.replace("\t", " ").split(" "))
+			var words = chunks.filter(func(x: String): return x.length() > 0)
+			if words.size() > 2 && words[0] == "uniform":
+				match words[1]:
+					"float4": words[1] = "vec4"
+				uniforms.push_back(words.slice(0, 3))
+
+	var uniforms_text = ";\n".join(uniforms.map(func(x): return " ".join(x))) + ";\n"
+	gdshader.code = "shader_type spatial;\n\n%s\n\nvoid fragment() { ALBEDO = vec3(1.0, 0.11, 1.0); }\n" % uniforms_text
+
+	return asset_save_shader_to_disk(gdshader, unity_shader, "Shader")
 
 #----------------------------------------

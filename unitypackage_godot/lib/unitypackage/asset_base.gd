@@ -53,7 +53,7 @@ func trace(method: String, message: String = "", color: Color = Color.DODGER_BLU
 
 #----------------------------------------
 
-func load_binary() -> PackedByteArray:
+func load_binary(auto_save: bool = true) -> PackedByteArray:
 	trace("LoadBinary")
 
 	# _memcache_packagebinary used by load_binary, save_binary
@@ -77,7 +77,8 @@ func load_binary() -> PackedByteArray:
 			var _null = null
 			return PackedByteArray()
 		data._memcache_packagebinary = bin_data
-		save_binary()
+		if auto_save:
+			save_binary()
 
 	return data.get("_memcache_packagebinary", null) as PackedByteArray
 
@@ -119,14 +120,19 @@ func save_binary() -> bool:
 	var disk_path = disk_storage_path()
 	DirAccess.make_dir_recursive_absolute(disk_path.get_base_dir())
 
+	trace("SaveBinary", "Opening")
 	var file = FileAccess.open(disk_path, FileAccess.WRITE)
 	if file == null:
 		push_warning("Asset::_SaveBinary::FileOpenError::%s::%s" % [FileAccess.get_open_error(), disk_path])
 		return false
 
+	trace("SaveBinary", "Storing")
+	var start = Time.get_ticks_msec()
 	file.store_buffer(data._memcache_packagebinary)
+	file.flush()
 	file.close()
-
+	var load_time = Time.get_ticks_msec() - start
+	trace("SaveBinary", "Finished::%f seconds" % (load_time / 60.0), Color.MEDIUM_SEA_GREEN)
 	data._disk_storage_binary_path = disk_path
 	return true
 
@@ -221,7 +227,7 @@ func asset_path_on_disk() -> String:
 				"prefab":
 					return "%s.tscn" % base_name
 				"mat":
-					return "%s.material" % base_name
+					return "%s.tres" % base_name
 				_:
 					breakpoint
 					return ""
@@ -231,6 +237,8 @@ func asset_path_on_disk() -> String:
 			return "%s.tscn" % base_name
 		"PrefabImporter":
 			return "%s.tscn" % base_name
+		"ShaderImporter":
+			return "%s.gdshader" % base_name
 		_:
 					breakpoint
 					return ""
@@ -244,7 +252,10 @@ func asset_is_on_disk() -> bool:
 
 	var path = asset_path_on_disk()
 	var result = FileAccess.file_exists(path)
-	trace("AssetIsOnDisk::%s" % ["True" if result else "False"], "", Color.GREEN)
+	trace("AssetIsOnDisk::%s::%s" % [
+		"True" if result else "False",
+		path
+	], "", Color.GREEN)
 	return result
 
 #----------------------------------------
@@ -270,7 +281,10 @@ func _asset_load_from_disk():
 		return data._memcache_assetloadfromdisk
 
 	trace("AssetLoadFromDisk::Loading", "", Color.GREEN)
+	var start = Time.get_ticks_msec()
 	data._memcache_assetloadfromdisk = load(asset_path_on_disk())
+	var load_time = Time.get_ticks_msec() - start
+	trace("AssetLoadFromDisk::Loaded", "%0.2f seconds" % (load_time / 60.0), Color.MEDIUM_SEA_GREEN)
 	return data._memcache_assetloadfromdisk
 
 #----------------------------------------
@@ -335,7 +349,36 @@ func asset_save_resource_to_disk(_asset, _source: String):
 		push_error("AssetSaveResourceToDisk::SaveError::%d::%s" % [result, self])
 		return _asset
 
-	trace("AssetSaveToDisk::Reloading", "", Color.GREEN)
+	trace("AssetSaveResourceToDisk::Reloading", "", Color.GREEN)
+	var start = Time.get_ticks_msec()
+	var res = load(path)
+	var load_time = Time.get_ticks_msec() - start
+	trace("AssetSaveResourceToDisk::Loaded", "%0.2f seconds" % (load_time / 60.0), Color.MEDIUM_SEA_GREEN)
+	return res
+
+#----------------------------------------
+
+func asset_save_shader_to_disk(_asset, unity_shader_content: PackedByteArray, _source: String):
+	if !upack.enable_disk_storage:
+		trace("AssetSaveShaderToDisk::DiskStorageDisabled", "", Color.YELLOW)
+		return _asset
+
+	var path = asset_path_on_disk()
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+
+	var result = ResourceSaver.save(_asset, path)
+	if result != OK:
+		trace("AssetSaveShaderToDisk::Error", "", Color.RED)
+		push_error("AssetSaveShaderToDisk::SaveError::%d::%s" % [result, self])
+		return _asset
+
+	var shader_content_path = "%s.txt" % path.get_basename()
+	var file = FileAccess.open(shader_content_path, FileAccess.WRITE)
+	if file != null:
+		file.store_buffer(unity_shader_content)
+		file.close()
+
+	trace("AssetSaveShaderToDisk::Reloading", "", Color.GREEN)
 	return load(path)
 
 #----------------------------------------
@@ -378,6 +421,16 @@ func _to_string():
 		data.pathname, #.get_file(),
 		data._guid
 	]
+
+#----------------------------------------
+
+func to_color(dict: Dictionary) -> Color:
+	return Color(
+		float(dict.r),
+		float(dict.g),
+		float(dict.b),
+		float(dict.a)
+	)
 
 #----------------------------------------
 

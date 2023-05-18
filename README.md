@@ -31,6 +31,11 @@
 - macOS uses pipes to communicate between unitypackage_util and FBX2glTF
   - Windows requires using a temp file for this, temporarily created in the config `Extract Path` folder.
 
+## Shaders
+
+Original shaders are stored in `.txt` files along-side new placeholder shaders.
+Uniforms from the original shader are copied into the placeholder so materials maintain their shader properties.
+
 ## Currently Implemented
 
 Components:

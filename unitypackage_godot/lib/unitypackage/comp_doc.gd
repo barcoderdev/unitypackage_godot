@@ -449,7 +449,7 @@ func apply_component(root_node: Node3D, parent: Node3D, transform_node: Node3D) 
 		"BoxCollider", "CapsuleCollider", "MeshCollider", "SphereCollider":
 			# TODO
 			trace("ApplyComponent", "TODO::%s" % self)
-		"Animator", "AudioListener", "Behaviour", "Camera", "Light", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent":
+		"Animator", "Animation", "AudioListener", "Behaviour", "Camera", "Light", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent":
 			# Don't need?
 			trace("ApplyComponent", "Skipping::%s" % self)
 		"ParticleSystem", "ParticleSystemRenderer":
@@ -489,7 +489,6 @@ func _apply_component__game_object(root_node: Node3D, parent: Node3D, transform_
 			])
 			continue
 
-		trace("ApplyGameObjectComponent", str(comp_ref), Color.MEDIUM_SLATE_BLUE)
 		var comp = get_comp_doc_by_ref(comp_ref.component)
 		
 		if comp == null:
@@ -499,6 +498,8 @@ func _apply_component__game_object(root_node: Node3D, parent: Node3D, transform_
 		if comp.type == "Transform":
 			# This is the transform that is applying this game object doc
 			continue
+
+		# trace("ApplyGameObjectComponent", str(comp_ref), Color.MEDIUM_SLATE_BLUE)
 
 		append_ufile_ids(transform_node, [comp._ufile_id], "ApplyComponentGameObject::Component::%s" % comp)
 		comp.apply_component(root_node, parent, transform_node)
@@ -651,10 +652,16 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: CompDoc):
 			"m_StaticEditorFlags":			continue
 
 		if !m.target.has("guid") || !m.target.has("fileID"):
-			push_error("CompDoc::ApplyModifications::InvalidTarget::%s" % m.target)
+			push_error("CompDoc::ApplyModifications::InvalidTarget::%s::%s" % [
+				m.target,
+				prefab_doc
+			])
 			continue
 		if not m.target.guid is String:
-			push_error("CompDoc::ApplyModifications::InvalidTargetGuid::%s" % m.target)
+			push_error("CompDoc::ApplyModifications::InvalidTargetGuid::%s::%s" % [
+				m.target,
+				prefab_doc
+			])
 			continue
 
 		var cache_key = "%s:%s" % [m.target.guid, m.target.fileID]

@@ -59,6 +59,9 @@ func get_asset_by_ref(file_ref: Dictionary) -> Asset:
 #----------------------------------------
 
 func get_asset(guid: String) -> Asset:
+	if guid == "0000000000000000f000000000000000":
+		breakpoint
+
 	if !catalog.has(guid):
 		push_error("UPackGD::AssetNotFound::%s" % guid)
 		return null
@@ -108,6 +111,24 @@ func build_all_prefabs(use_thread: bool):
 		prefabs.map(build_prefab)
 		prefabs_loaded.emit()
 
+	var shader_worker = func():
+		var is_shader = func(asset: Asset):
+			return asset.pathname.ends_with(".shader")
+		var build_prefab = func(asset: Asset):
+			asset.asset_scene(null, null)
+			progress.progress_tick(asset.pathname)
+
+		var prefabs = (catalog
+			.keys()
+			.map(get_asset)
+			.filter(is_shader)
+		)
+
+		progress.progress_reset()
+		progress.progress_add(prefabs.size(), "Shaders")
+		prefabs.map(build_prefab)
+		prefabs_loaded.emit()
+
 	var material_worker = func():
 		var is_material = func(asset: Asset):
 			return asset.pathname.ends_with(".mat")
@@ -122,7 +143,7 @@ func build_all_prefabs(use_thread: bool):
 		)
 
 		progress.progress_reset()
-		progress.progress_add(prefabs.size(), "Prefabs")
+		progress.progress_add(prefabs.size(), "Materials")
 		prefabs.map(build_prefab)
 		prefabs_loaded.emit()
 
@@ -140,7 +161,7 @@ func build_all_prefabs(use_thread: bool):
 		)
 
 		progress.progress_reset()
-		progress.progress_add(prefabs.size(), "Prefabs")
+		progress.progress_add(prefabs.size(), "Scenes")
 		prefabs.map(build_unity)
 		prefabs_loaded.emit()
 
@@ -150,6 +171,7 @@ func build_all_prefabs(use_thread: bool):
 		#print("waiting for task")
 		#WorkerThreadPool.wait_for_task_completion(task)
 	else:
+		shader_worker.call()
 		material_worker.call()
 		prefab_worker.call()
 		#unity_worker.call()

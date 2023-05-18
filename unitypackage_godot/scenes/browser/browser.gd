@@ -50,6 +50,9 @@ func init():
 
 func load_imported_pacakges():
 	var dir = DirAccess.open(upack_config.extract_path)
+	if dir == null:
+		return
+
 	for d in dir.get_directories():
 		var location_file = "%s/%s/location.txt" % [
 			upack_config.extract_path,
