@@ -298,19 +298,26 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 
 		mesh = search.mesh
 	else: # mesh_name == null
-		# TODO: This probably needs to include the whole scene, not just the 1st mesh
-		push_warning("CompDoc::MeshFilter::MakingAGuess")
-
-		mesh_name = mesh_asset.pathname.get_file().get_basename()
+		var str_fileID = str(mesh_ref.fileID)
 		search = search_for_node(scene, func(n):
-			if n is MeshInstance3D:
+			var hash_text = "Type:Mesh->%s0" % original_name(n.name)
+			var hash_val: String = upack.xxhash64(hash_text)
+			# print("%s | %s == %s" % [hash_text, hash_val, str_fileID])
+			if hash_val == str_fileID:
 				return n
-			return
+			if hash_val.left(-4) == str_fileID.left(-4):
+				# TODO: Figure out why the last 4 digits don't match
+				#var diff = int(hash_val) - int(str_fileID)
+				#print("HASH DIFFERENCE: %s" % diff)
+				return n
 		)
 		if search == null:
-			push_error("CompDoc::MeshFilter::MeshSearchFailed2")
+			push_error("CompDoc::MeshFilter::MeshSearchFailed3")
 			search = scene
+			return
+
 		mesh = search.mesh
+		mesh_name = search.name
 
 	if upack.enable_disk_storage:
 		var asset_storage_path = mesh_asset.disk_storage_path()
@@ -388,10 +395,10 @@ func _comp_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, mes
 		if entry.size() > 0:
 			mesh_name = entry[0].second
 		if mesh_name == null:
-			push_error("CompDoc::MeshFilter::internalIDToNameTable::MissingMeshName::%s::%s" % [
-				mesh_ref,
-				mesh_asset.meta.content.internalIDToNameTable
-			])
+#			push_error("CompDoc::MeshFilter::internalIDToNameTable::MissingMeshName::%s::%s" % [
+#				mesh_ref,
+#				mesh_asset.meta.content.internalIDToNameTable
+#			])
 			return null
 	else:
 		push_error("CompDoc::MeshFilter::MissingMeshLookupDict::%s" % mesh_asset)

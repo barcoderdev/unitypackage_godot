@@ -286,9 +286,24 @@ func _fbx2gltf_execute(arguments: PackedStringArray, default: Variant):
 	var output = []
 	var result = OS.execute(ProjectSettings.globalize_path(fbx2gltf), arguments, output)
 	if result != 0:
-		push_error("Error _util_execute %d: %s %s = %s" % [result, fbx2gltf, arguments, output])
+		push_error("Error _fbx2gltf_execute %d: %s %s = %s" % [result, fbx2gltf, arguments, output])
 		return default
 	return output
+
+#----------------------------------------
+
+func xxhash64(text: String) -> String:
+	var output = []
+	var arguments = [
+		"none",
+		"xx-hash",
+		text
+	]
+	var result = OS.execute(ProjectSettings.globalize_path(unitypackage_util), arguments, output)
+	if result != 0:
+		push_error("Error xxhash64 %d: %s %s = %s" % [result, unitypackage_util, arguments, output])
+		return ""
+	return output[0]
 
 #----------------------------------------
 

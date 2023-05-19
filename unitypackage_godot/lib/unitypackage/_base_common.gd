@@ -138,6 +138,21 @@ func to_quaternion(dict: Dictionary) -> Quaternion:
 
 #----------------------------------------
 
+# Reverse of PivotFixer.CharMap
+const RevCharMap = {
+	"#DOT#" = ".",
+	"#CLN#" = ":",
+	"#AT#" = "@",
+	"#PCT#" = "%",
+}
+
+func original_name(text: String) -> String:
+	for k in RevCharMap:
+		text = text.replace(k, RevCharMap[k])
+	return text
+
+#----------------------------------------
+
 func node_dump(node: Node3D, message: String) -> Node3D:
 	if !debug_log:
 		return node

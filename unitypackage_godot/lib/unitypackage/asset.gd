@@ -339,6 +339,8 @@ func asset_image__load_image_from_buffer(image: Image, buffer: PackedByteArray) 
 #----------------------------------------
 
 func asset_material() -> Material:
+	trace("Material")
+
 	if upack.enable_memcache && data.has("_memcache_material"):
 		trace("Material", "FromMemCache", Color.GREEN)
 		return data._memcache_material
@@ -353,6 +355,11 @@ func asset_material() -> Material:
 	if self.meta.content.has("mainObjectFileID"):
 		main_object_file_id = self.meta.content.mainObjectFileID
 	else:
+		if self.docs == null:
+			push_error("Material", "NotMaterial::%s" % self, Color.RED)
+			# TODO: Check if referenced material is stored in the glb?
+			breakpoint
+			return null
 		main_object_file_id = self.docs[0]._file_id
 
 	var mat_doc = upack.get_comp_doc(data._guid, main_object_file_id)
