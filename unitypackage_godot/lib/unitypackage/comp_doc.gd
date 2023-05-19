@@ -448,10 +448,12 @@ func apply_component(root_node: Node3D, parent: Node3D, transform_node: Node3D) 
 			_apply_component__skinned_mesh_renderer(root_node, parent, transform_node)
 		"Light":
 			_apply_component__light(root_node, parent, transform_node)
+		"Camera":
+			_apply_component__camera(root_node, parent, transform_node)
 		"BoxCollider", "CapsuleCollider", "MeshCollider", "SphereCollider":
 			# TODO
 			trace("ApplyComponent", "TODO::%s" % self)
-		"Animator", "Animation", "AudioListener", "Behaviour", "Camera", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent":
+		"Animator", "Animation", "AudioListener", "Behaviour", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent":
 			# Don't need?
 			trace("ApplyComponent", "Skipping::%s" % self)
 		"ParticleSystem", "ParticleSystemRenderer":
@@ -459,42 +461,6 @@ func apply_component(root_node: Node3D, parent: Node3D, transform_node: Node3D) 
 			trace("ApplyComponent", "UnlikelyTODO::%s" % self)
 		_:
 			push_error("CompDoc::Apply::UnsupportedType::%s" % data.type)
-
-#----------------------------------------
-
-enum UnityLightType {
-	Spot = 0,
-	Directional = 1,
-	Point = 2,
-	Area = 3,
-}
-
-func _apply_component__light(root_node: Node3D, parent: Node3D, transform_node: Node3D) -> void:
-	# TODO: More attributes
-	var light: Light3D
-	var light_type = data.content.m_Type as UnityLightType
-	match light_type:
-		UnityLightType.Spot:
-			light = SpotLight3D.new()
-			light.name = "_Spot"
-			light.spot_angle = data.content.m_SpotAngle
-		UnityLightType.Directional:
-			light = DirectionalLight3D.new()
-			light.name = "_Directional"
-		UnityLightType.Point:
-			light = OmniLight3D.new()
-			light.name = "_Point"
-			light.omni_range = data.content.m_Range
-		UnityLightType.Area:
-			light = OmniLight3D.new()
-			light.name = "_Area"
-
-	if light != null:
-		light.light_energy = data.content.m_Intensity
-		light.visible = data.content.m_Enabled == 1
-		light.light_color = to_color(data.content.m_Color)
-		transform_node.add_child(light)
-		light.owner = choose_correct_owner(root_node, parent, transform_node)
 
 #----------------------------------------
 
@@ -541,6 +507,57 @@ func _apply_component__game_object(root_node: Node3D, parent: Node3D, transform_
 
 		append_ufile_ids(transform_node, [comp._ufile_id], "ApplyComponentGameObject::Component::%s" % comp)
 		comp.apply_component(root_node, parent, transform_node)
+
+#----------------------------------------
+
+func _apply_component__camera(root_node: Node3D, parent: Node3D, transform_node: Node3D) -> void:
+	trace("ApplyComponent_Camera")
+
+	# TODO: More attributes
+	var camera = Camera3D.new()
+	camera.name = "_Camera"
+	camera.fov = data.content["field of view"]
+	camera.rotate_y(deg_to_rad(180.0))
+	transform_node.add_child(camera)
+	camera.owner = choose_correct_owner(root_node, parent, transform_node)
+
+#----------------------------------------
+
+enum UnityLightType {
+	Spot = 0,
+	Directional = 1,
+	Point = 2,
+	Area = 3,
+}
+
+func _apply_component__light(root_node: Node3D, parent: Node3D, transform_node: Node3D) -> void:
+	trace("ApplyComponent_Light")
+
+	# TODO: More attributes
+	var light: Light3D
+	var light_type = data.content.m_Type as UnityLightType
+	match light_type:
+		UnityLightType.Spot:
+			light = SpotLight3D.new()
+			light.name = "_Spot"
+			light.spot_angle = data.content.m_SpotAngle
+		UnityLightType.Directional:
+			light = DirectionalLight3D.new()
+			light.name = "_Directional"
+		UnityLightType.Point:
+			light = OmniLight3D.new()
+			light.name = "_Point"
+			light.omni_range = data.content.m_Range
+		UnityLightType.Area:
+			light = OmniLight3D.new()
+			light.name = "_Area"
+
+	if light != null:
+		light.light_energy = data.content.m_Intensity
+		light.visible = data.content.m_Enabled == 1
+		light.light_color = to_color(data.content.m_Color)
+		transform_node.add_child(light)
+		light.owner = choose_correct_owner(root_node, parent, transform_node)
 
 #----------------------------------------
 
