@@ -360,7 +360,7 @@ func asset_material() -> Material:
 			# TODO: Check if referenced material is stored in the glb?
 			breakpoint
 			return null
-		main_object_file_id = self.docs[0]._file_id
+		main_object_file_id = 2100000
 
 	var mat_doc = upack.get_comp_doc(data._guid, main_object_file_id)
 	if not mat_doc is CompDoc:
@@ -378,11 +378,16 @@ func asset_material() -> Material:
 #			shader.pathname
 #		])
 
-		trace("Material", "ShaderPlaceholder", Color.YELLOW_GREEN)
-		material = ShaderMaterial.new()
-		material.set_meta("shader_placeholder", shader.pathname)
-		material.shader = shader.asset_shader()
-	else:
+		if shader == null:
+			trace("Material", "ShaderNotFound", Color.ORANGE)
+			material = StandardMaterial3D.new()
+		else:
+			trace("Material", "ShaderPlaceholder", Color.YELLOW_GREEN)
+			material = ShaderMaterial.new()
+			material.set_meta("shader_placeholder", shader.pathname)
+			material.shader = shader.asset_shader()
+	else: # Built-in
+		# TODO: fileID determines the type of built-in shader
 		material = StandardMaterial3D.new()
 
 	trace("Material", "Attributes", Color.CORAL)

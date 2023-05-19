@@ -301,6 +301,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 		var str_fileID = str(mesh_ref.fileID)
 		search = search_for_node(scene, func(n):
 			# https://forum.unity.com/threads/how-to-control-fileid-using-custom-scriptedimporter.1384596/
+			# https://forum.unity.com/threads/fbx-submesh-fileids.948882/
 			# xxhash(`Type:${obj.GetType().Name}->${id}0`)
 
 			var hash_text = "Type:Mesh->%s0" % original_name(n.name)
@@ -463,7 +464,7 @@ func apply_component(root_node: Node3D, parent: Node3D, transform_node: Node3D) 
 		"BoxCollider", "CapsuleCollider", "MeshCollider", "SphereCollider":
 			# TODO
 			trace("ApplyComponent", "TODO::%s" % self)
-		"Animator", "Animation", "AudioListener", "Behaviour", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent":
+		"Animator", "Animation", "AudioListener", "Behaviour", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent", "LODGroup":
 			# Don't need?
 			trace("ApplyComponent", "Skipping::%s" % self)
 		"ParticleSystem", "ParticleSystemRenderer":
