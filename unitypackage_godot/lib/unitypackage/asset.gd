@@ -352,7 +352,7 @@ func asset_material() -> Material:
 	trace("Material", "Loading", Color.YELLOW)
 
 	var main_object_file_id: int
-	if self.meta.content.has("mainObjectFileID"):
+	if self.meta.content.has("mainObjectFileID") && self.meta.content.mainObjectFileID != 0:
 		main_object_file_id = self.meta.content.mainObjectFileID
 	else:
 		if self.docs == null:

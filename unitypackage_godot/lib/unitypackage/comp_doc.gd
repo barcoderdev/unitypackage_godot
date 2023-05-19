@@ -300,6 +300,9 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 	else: # mesh_name == null
 		var str_fileID = str(mesh_ref.fileID)
 		search = search_for_node(scene, func(n):
+			# https://forum.unity.com/threads/how-to-control-fileid-using-custom-scriptedimporter.1384596/
+			# xxhash(`Type:${obj.GetType().Name}->${id}0`)
+
 			var hash_text = "Type:Mesh->%s0" % original_name(n.name)
 			var hash_val: String = upack.xxhash64(hash_text)
 			# print("%s | %s == %s" % [hash_text, hash_val, str_fileID])
