@@ -93,6 +93,24 @@ func build_all_prefabs(use_thread: bool):
 	if false:
 		return
 
+	var assets_worker = func():
+		var is_saveable = func(asset: Asset):
+			return [
+				"AudioImporter",
+				"ModelImporter",
+				"TextureImporter"
+			].has(asset.type)
+
+		var save = func(asset: Asset):
+			asset.load_binary(true)
+
+		(catalog
+			.keys()
+			.map(get_asset)
+			.filter(is_saveable)
+			.map(save)
+		)
+
 	var prefab_worker = func():
 		var is_prefab = func(asset: Asset):
 			return asset.pathname.ends_with(".prefab")
@@ -166,11 +184,13 @@ func build_all_prefabs(use_thread: bool):
 		prefabs_loaded.emit()
 
 	if use_thread:
-		var thread = Thread.new()
-		thread.start(prefab_worker, Thread.PRIORITY_HIGH)
+		pass
+		#var thread = Thread.new()
+		#thread.start(prefab_worker, Thread.PRIORITY_HIGH)
 		#print("waiting for task")
 		#WorkerThreadPool.wait_for_task_completion(task)
 	else:
+		assets_worker.call()
 		shader_worker.call()
 		material_worker.call()
 		prefab_worker.call()

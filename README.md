@@ -92,6 +92,7 @@ Importers:
 - PrefabImporter
 - TextureImporter
 - ShaderImporter (See [Shaders](#shaders) section)
+- AudioImporter
 
 ## Todo
 

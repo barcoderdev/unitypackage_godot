@@ -32,6 +32,8 @@ func asset_scene(root_node: Node3D, parent: Node3D = null):
 			return asset_native_format_importer_prefab(root_node, parent)
 		"ShaderImporter":
 			return asset_shader_importer(root_node, parent)
+		"AudioImporter":
+			return asset_audio_importer(root_node, parent)
 		_:
 			push_error("Asset::Scene::UnsupportedType::%s" % self.type)
 			return null
@@ -496,6 +498,36 @@ func asset_material__m_Floats(material, mat_doc: CompDoc) -> void:
 			"_SrcBlend": pass
 			"_UVSec": pass
 			"_ZWrite": pass
+
+#----------------------------------------
+
+func asset_audio_importer(_root_node, _parent) -> Node3D:
+	trace("AudioImporter")
+
+	var ext = pathname.get_extension().to_lower()
+	var stream
+	match ext:
+		"wav":
+			stream = AudioStreamWAV.new()
+			stream.data = load_binary(true)
+			# TODO: Determine how to detect this
+			stream.format = AudioStreamWAV.FORMAT_16_BITS
+		"ogg":
+			stream = AudioStreamOggVorbis.new()
+			stream.data = load_binary(true)
+		"mp3":
+			stream = AudioStreamMP3.new()
+			stream.data = load_binary(true)
+
+	var node = Node3D.new()
+
+	if stream != null:
+		var player = AudioStreamPlayer.new()
+		player.stream = stream
+		player.autoplay = true
+		node.add_child(player)
+
+	return node
 
 #----------------------------------------
 # *.shader
