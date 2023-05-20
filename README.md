@@ -4,6 +4,12 @@
 
 ---
 
+![Synty in Unity](unitypackage_godot/docs/comparison-in-unity.png)
+
+![Synty in Godot](unitypackage_godot/docs/comparison-in-godot.png)
+
+---
+
 - Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) at `res://FBX2glTF` (with .exe on Windows)
   - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/4994628239 (Login to Github first)
 - Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) at `res://unitypackage_util` (with .exe on Windows)
