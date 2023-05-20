@@ -332,7 +332,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 		mesh_name = search.name
 	if upack.enable_disk_storage:
 		var asset_storage_path = mesh_asset.disk_storage_path()
-		var mesh_storage_path = "%s%s/%s-%s.tscn" % [
+		var mesh_storage_path = "%s%s/%s_%s.tscn" % [
 			asset_storage_path.get_basename(),
 			"_mesh",
 			mesh_save_name,
