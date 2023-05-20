@@ -15,12 +15,13 @@ func scifi_city__patch_meshfilter_node(node: Node, mesh_name: String):
 	var rescale = ["SM_Sign_Billboard_Large_", "SM_Prop_Posters_", "SM_Prop_Cables_"]
 	for r in rescale:
 		if mesh_name.contains(r):
-			trace("PackagePatcher::Rescaling::%s" % mesh_name, Color.ORANGE)
+			trace("PackagePatcher::Rescale&Reposition::%s" % mesh_name, Color.ORANGE)
 			node.scale *= 0.1
 			node.position *= 0.1
 			return
 
 	if ["Skydome", "Moon", "Stars", "Sun"].has(mesh_name):
+		trace("PackagePatcher::Rescale::%s" % mesh_name, Color.ORANGE)
 		node.scale *= 100
 
 #----------------------------------------
