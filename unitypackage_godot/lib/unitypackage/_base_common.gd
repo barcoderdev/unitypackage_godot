@@ -9,6 +9,19 @@ const UPDATE_OWNER_LOG: String = "owner_log"
 
 #----------------------------------------
 
+const BUILT_IN_SHADER_GUID: String = "0000000000000000f000000000000000"
+
+# TODO: Update this with more
+const BUILT_IN_SHADER_IDS: Dictionary = {
+	"10101" = "GUI/Text Shader",
+	"10770" = "UI/Default",
+	"10750" = "Unlit/Transparent",
+	"10755" = "Hidden/FrameDebuggerRenderTargetDisplay",
+	"46" = "Standard",
+}
+
+#----------------------------------------
+
 var debug_log: bool = false
 
 #----------------------------------------

@@ -369,14 +369,9 @@ func asset_material() -> Material:
 
 	var material
 
-	if mat_doc.content.m_Shader.guid != "0000000000000000f000000000000000":
+	if mat_doc.content.m_Shader.guid != BUILT_IN_SHADER_GUID:
 		# Build the placeholder
 		var shader = upack.get_asset_by_ref(mat_doc.content.m_Shader)
-
-#		push_warning("Asset::_Material::NonStandardShader::%s::%s" % [
-#			pathname,
-#			shader.pathname
-#		])
 
 		if shader == null:
 			trace("Material", "ShaderNotFound", Color.ORANGE)
@@ -414,7 +409,7 @@ func asset_material__m_TexEnvs(material, mat_doc: CompDoc) -> void:
 		if tex.m_Texture.fileID == "0" && !tex.m_Texture.has("guid"):
 			continue
 
-		if tex.m_Texture.guid == "0000000000000000f000000000000000":
+		if tex.m_Texture.guid == BUILT_IN_SHADER_GUID:
 			# TODO
 			continue
 

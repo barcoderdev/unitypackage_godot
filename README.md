@@ -110,7 +110,6 @@ Components:
 
 Misc:
 
-- Import audio assets
 - More material properties
 - Convert unitypackage_util to GDExtension: https://github.com/godot-rust/gdext
    - with fbx2gltf included: https://docs.rs/cxx/latest/cxx/

@@ -297,7 +297,10 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 #			)
 
 		if search == null:
-			push_error("CompDoc::MeshFilter::MeshNameSearchFailed::%s" % mesh_name)
+			push_error("CompDoc::MeshFilter::MeshNameSearchFailed::%s::%s" % [
+				mesh_name,
+				mesh_ref
+			])
 			return
 
 		mesh = search.mesh
@@ -335,7 +338,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 		var mesh_storage_path = "%s%s/%s_%s.tscn" % [
 			asset_storage_path.get_basename(),
 			"_mesh",
-			mesh_save_name,
+			mesh_save_name, # TODO: Sanitize for filesystem
 			mesh_ref.fileID
 		]
 		var mesh_save_file = "%s.mesh" % mesh_storage_path.get_basename()
@@ -361,8 +364,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 		# amount set on the node by GLTF PivotFixer.
 		# This allows pivot_offset to be translated/rotated
 		# without being affected by the mesh instance offset.
-		# This would not be needed if the pivot can be set separately
-		# on the mesh instance.
+		# Using this wrapper can make fixing issues easier after import.
 		var pivot_offset = Node3D.new()
 
 		# Use a parent node for offset
@@ -595,7 +597,7 @@ func _apply_component__skinned_mesh_renderer(root_node: Node3D, parent: Node3D, 
 
 	_apply_component__mesh_filter(root_node, parent, transform_node)
 	_apply_component__mesh_renderer(root_node, parent, transform_node)
-	# TODO: Skeleton
+	# TODO: Skeleton, attachments
 
 #----------------------------------------
 
@@ -614,8 +616,7 @@ func _apply_component__mesh_renderer(_root_node: Node3D, _parent: Node3D, transf
 	trace("ApplyComponent_MeshRenderer")
 
 	var materials = data.content.m_Materials.map(func(mat_ref):
-		# TODO: Figure out what this guid represents
-		if mat_ref.guid == "0000000000000000f000000000000000":
+		if mat_ref.guid == BUILT_IN_SHADER_GUID:
 			return StandardMaterial3D.new()
 		else:
 			var material = upack.get_asset_by_ref(mat_ref)
