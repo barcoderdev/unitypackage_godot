@@ -6,6 +6,7 @@ class_name AssetBase extends BaseCommon
 
 const DISK_STORAGE_VERSION: float = 0.1
 const DISK_STORAGE_VERSION_KEY: String = "disk_store_ver"
+const breakpoints_enabled: bool = false
 
 #----------------------------------------
 
@@ -120,13 +121,13 @@ func save_binary() -> bool:
 	var disk_path = disk_storage_path()
 	DirAccess.make_dir_recursive_absolute(disk_path.get_base_dir())
 
-	trace("SaveBinary", "Opening")
+	# trace("SaveBinary", "Opening")
 	var file = FileAccess.open(disk_path, FileAccess.WRITE)
 	if file == null:
 		push_warning("Asset::_SaveBinary::FileOpenError::%s::%s" % [FileAccess.get_open_error(), disk_path])
 		return false
 
-	trace("SaveBinary", "Storing")
+	# trace("SaveBinary", "Storing")
 	var start = Time.get_ticks_msec()
 	file.store_buffer(data._memcache_packagebinary)
 	file.flush()
@@ -195,7 +196,7 @@ func disk_storage_handler(disk_path: String, builder: Callable) -> Variant:
 
 	if built is Object || built is PackedScene:
 		built.set_meta(DISK_STORAGE_VERSION_KEY, DISK_STORAGE_VERSION)
-		if ResourceSaver.save(built, disk_path) != OK:
+		if ResourceSaver.save(built, disk_path) != OK && breakpoints_enabled:
 			breakpoint
 
 		# Try loading from disk again
@@ -229,7 +230,8 @@ func asset_path_on_disk() -> String:
 				"mat":
 					return "%s.tres" % base_name
 				_:
-					breakpoint
+					if breakpoints_enabled:
+						breakpoint
 					return ""
 		"TextureImporter":
 			return path_name.simplify_path() # "%s.tres" % base_name
@@ -240,8 +242,9 @@ func asset_path_on_disk() -> String:
 		"ShaderImporter":
 			return "%s.gdshader" % base_name
 		_:
-					breakpoint
-					return ""
+			if breakpoints_enabled:
+				breakpoint
+			return ""
 
 #----------------------------------------
 
@@ -263,7 +266,7 @@ func asset_is_on_disk() -> bool:
 func asset_packed_scene_from_disk() -> PackedScene:
 	trace("AssetInstantiateFromDisk", "", Color.YELLOW)
 	var result = _asset_load_from_disk()
-	if not result is PackedScene:
+	if breakpoints_enabled && not result is PackedScene:
 		breakpoint
 	return result
 
@@ -431,23 +434,23 @@ func to_color(dict: Dictionary) -> Color:
 		float(dict.b),
 		float(dict.a)
 	)
-
-#----------------------------------------
-
-func _get(property: StringName):
-	if property != "script":
-		print("AssetBase::_get::%s" % property)
-
-	if property == "_file_id":
-		breakpoint
-
-	if property == "asset":
-		breakpoint
-
-	if data == null || !data.has(property):
-		return null
-
-	return data.get(property)
+#
+##----------------------------------------
+#
+#func _get(property: StringName):
+#	if property != "script":
+#		print("AssetBase::_get::%s" % property)
+#
+#	if property == "_file_id":
+#		breakpoint
+#
+#	if property == "asset":
+#		breakpoint
+#
+#	if data == null || !data.has(property):
+#		return null
+#
+#	return data.get(property)
 
 #----------------------------------------
 

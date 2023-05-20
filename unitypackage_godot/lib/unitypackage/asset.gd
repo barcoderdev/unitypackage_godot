@@ -352,13 +352,13 @@ func asset_material() -> Material:
 	trace("Material", "Loading", Color.YELLOW)
 
 	var main_object_file_id: int
-	if self.meta.content.has("mainObjectFileID") && self.meta.content.mainObjectFileID != 0:
+	if self.meta.content.has("mainObjectFileID") && self.meta.content.mainObjectFileID > 0:
 		main_object_file_id = self.meta.content.mainObjectFileID
 	else:
 		if self.docs == null:
 			push_error("Material", "NotMaterial::%s" % self, Color.RED)
 			# TODO: Check if referenced material is stored in the glb?
-			breakpoint
+			# breakpoint
 			return null
 		main_object_file_id = 2100000
 

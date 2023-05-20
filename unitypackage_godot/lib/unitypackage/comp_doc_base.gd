@@ -159,34 +159,12 @@ func _to_string():
 	var _comp_doc_mesh_filter = data.has("_memcache_meshfilter")
 	var loaded = _comp_doc_mesh_filter
 
-#	return "[CompDoc] GUID: %s | ID: %d | Extra: %s | Type: %s | Loaded: %s | %s" % [
-#		data._guid,
-#		data._file_id,
-#		data._extra,
-#		data.type,
-#		"Yes" if loaded else "No",
-#		asset.pathname
-#	]
 	return "[CompDoc] %s | [color=#ffffff]%s[/color] | %s # %d" % [
 		data.type,
 		asset.pathname, #.get_file(),
 		data._guid,
 		data._file_id
 	]
-
-#----------------------------------------
-#
-#func _get(property: StringName):
-#	if property != "script":
-#		print("CompDocBase::_get::%s" % property)
-#
-#	if property == "_ufile_id":
-#		breakpoint
-#
-#	if data == null || !data.has(property):
-#		return null
-#
-#	return data.get(property)
 
 #----------------------------------------
 

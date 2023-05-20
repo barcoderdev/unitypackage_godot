@@ -8,7 +8,12 @@ class_name CompDoc extends CompDocBase
 
 #----------------------------------------
 
+const breakpoints_enabled: bool = false
+
+#----------------------------------------
+
 func manual_mesh_patch(node: Node, node_name: String):
+	return
 	# Temporary Scale fix for SciFi City
 	# Not sure how these are scaled correctly in Unity, maybe something in the FBX?
 	var rescale = ["SM_Sign_Billboard_Large_", "SM_Prop_Posters_", "SM_Prop_Cables_"]
@@ -22,11 +27,11 @@ func manual_mesh_patch(node: Node, node_name: String):
 #----------------------------------------
 
 func comp_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
-	trace("Scene", "%s::%s" % [
-		str(self),
-		"ROOT" if root_node == null else "CHILD"
-	], Color.ORANGE)
- 
+#	trace("Scene", "%s::%s" % [
+#		str(self),
+#		"ROOT" if root_node == null else "CHILD"
+#	], Color.ORANGE)
+
 	match data.type:
 		"Transform":
 			if is_stripped_transform():
@@ -54,9 +59,6 @@ func comp_doc_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("Transform", "Building", Color.GREEN)
 	
 	var gameobject_doc = get_comp_doc_by_ref(data.content.m_GameObject)
-
-	if gameobject_doc.content.m_Name == "Root_M":
-		breakpoint
 
 	var transform_node = Node3D.new()
 	if parent != null:
@@ -96,18 +98,18 @@ func comp_doc_stripped_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 
 	if data.content.has("m_PrefabInstance"):
 		prefab_doc = get_comp_doc_by_ref(data.content.m_PrefabInstance)
-		if !prefab_doc.content.has("m_SourcePrefab") || prefab_doc.content.m_SourcePrefab.fileID != 100100000:
+		
+		if breakpoints_enabled && !prefab_doc.content.has("m_SourcePrefab") || prefab_doc.content.m_SourcePrefab.fileID != 100100000:
 			breakpoint
 		prefab_asset = upack.get_asset(prefab_doc.content.m_SourcePrefab.guid)
 	elif data.content.has("m_PrefabInternal"):
-#		if data.content.m_PrefabInternal.fileID == 1724041162:
-#			breakpoint
 		prefab_doc = get_comp_doc_by_ref(data.content.m_PrefabInternal)
-		if !prefab_doc.content.has("m_ParentPrefab") || prefab_doc.content.m_ParentPrefab.fileID != 100100000:
+		if breakpoints_enabled && !prefab_doc.content.has("m_ParentPrefab") || prefab_doc.content.m_ParentPrefab.fileID != 100100000:
 			breakpoint
 		prefab_asset = upack.get_asset(prefab_doc.content.m_ParentPrefab.guid)
 	else:
-		breakpoint
+		if breakpoints_enabled:
+			breakpoint
 		return null
 
 	if not prefab_asset is Asset:
@@ -150,6 +152,9 @@ func comp_doc_prefab(root_node: Node3D, parent: Node3D) -> Node3D:
 	trace("Prefab", "Building", Color.GREEN)
 
 	var prefab_doc = upack.get_asset_by_ref(data.content.m_ParentPrefab)
+	if not prefab_doc is Asset:
+		return null
+
 	var node = prefab_doc.asset_scene(root_node, parent)
 
 	set_created_by(node, "CompDoc::Prefab")
@@ -266,10 +271,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 
 	var mesh
 	var search
-	if mesh_name != null:
-		if mesh_name == "":
-			mesh_name = mesh_asset.pathname.get_file().get_basename()
-
+	if mesh_name != null && mesh_name != "":
 		search = search_for_node(scene, func(n):
 			if mesh_name == n.name && n is MeshInstance3D:
 				return n
@@ -339,7 +341,8 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 	var instance = MeshInstance3D.new()
 	instance.mesh = mesh
 	instance.position = search.position
-	instance.scale = search.scale
+	var globalScale = mesh_asset.meta.content.meshes.globalScale
+	instance.scale = search.scale * globalScale
 	instance.name = "_mesh" # mesh_name
 	set_created_by(instance, "CompDoc::MeshFilter")
 
@@ -757,9 +760,6 @@ func _apply_modifications(parent: Node3D, node: Node3D, prefab_doc: CompDoc):
 			# Unity Response: It's not a bug, but we're aware the design has some issues.			
 			if false: push_warning("CompDoc::ApplyModifications::TargetMissing::%s" % m)
 			continue
-
-#		if m.target.fileID == 4287472177597850 && m.propertyPath == "m_LocalPosition.x":
-#			breakpoint
 
 		if quat_builder.update(cache_key, target, m):
 			continue

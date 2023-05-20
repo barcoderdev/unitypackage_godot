@@ -59,8 +59,8 @@ func get_asset_by_ref(file_ref: Dictionary) -> Asset:
 #----------------------------------------
 
 func get_asset(guid: String) -> Asset:
-	if guid == "0000000000000000f000000000000000":
-		breakpoint
+#	if guid == "0000000000000000f000000000000000":
+#		breakpoint
 
 	if !catalog.has(guid):
 		push_error("UPackGD::AssetNotFound::%s" % guid)
