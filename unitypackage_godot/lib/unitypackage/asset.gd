@@ -356,7 +356,7 @@ func asset_material() -> Material:
 		main_object_file_id = self.meta.content.mainObjectFileID
 	else:
 		if self.docs == null:
-			push_error("Material", "NotMaterial::%s" % self, Color.RED)
+			push_error("Material::NotMaterial::%s" % self)
 			# TODO: Check if referenced material is stored in the glb?
 			# breakpoint
 			return null

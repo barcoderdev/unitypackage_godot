@@ -297,7 +297,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 #			)
 
 		if search == null:
-			push_error("CompDoc::MeshFilter::MeshSearchFailed1")
+			push_error("CompDoc::MeshFilter::MeshNameSearchFailed::%s" % mesh_name)
 			return
 
 		mesh = search.mesh
@@ -305,23 +305,27 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 	else: # mesh_name == null
 		var str_fileID = str(mesh_ref.fileID)
 		search = search_for_node(scene, func(n):
+			if not n is MeshInstance3D:
+				return
+
 			# https://forum.unity.com/threads/how-to-control-fileid-using-custom-scriptedimporter.1384596/
 			# https://forum.unity.com/threads/fbx-submesh-fileids.948882/
 			# xxhash(`Type:${obj.GetType().Name}->${id}0`)
-
 			var hash_text = "Type:Mesh->%s0" % original_name(n.name)
 			var hash_val: String = upack.xxhash64(hash_text)
 			# print("%s | %s == %s" % [hash_text, hash_val, str_fileID])
+
 			if hash_val == str_fileID:
 				mesh_save_name = original_name(n.name)
 				return n
+
 			if hash_val.left(-4) == str_fileID.left(-4):
 				if breakpoints_enabled:
 					# This should have been resolved by the fileID as String fix
 					breakpoint
 		)
 		if search == null:
-			push_error("CompDoc::MeshFilter::MeshSearchFailed3")
+			push_error("CompDoc::MeshFilter::MeshXXHashSearchFailed::%s" % mesh_ref)
 			return
 
 		mesh = search.mesh
