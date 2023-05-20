@@ -12,20 +12,6 @@ const breakpoints_enabled: bool = false
 
 #----------------------------------------
 
-func manual_mesh_patch(node: Node, node_name: String):
-	return
-	# Temporary Scale fix for SciFi City
-	# Not sure how these are scaled correctly in Unity, maybe something in the FBX?
-	var rescale = ["SM_Sign_Billboard_Large_", "SM_Prop_Posters_", "SM_Prop_Cables_"]
-	for r in rescale:
-		if node_name.contains(r):
-			trace("ManualMeshPatch", "Rescaling::%s" % node_name, Color.ORANGE)
-			node.scale *= 0.1
-			node.position *= 0.1
-			return
-
-#----------------------------------------
-
 func comp_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
 #	trace("Scene", "%s::%s" % [
 #		str(self),
@@ -379,7 +365,9 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 	else:
 		# Use transform origin for offset
 		instance.transform.origin = search.position
-		manual_mesh_patch(instance, mesh_name)
+
+		upack.patcher.patch_meshfilter_node(upack, instance, mesh_name)
+
 		transform_node.add_child(instance)
 		instance.owner = choose_correct_owner(root_node, parent, transform_node)
 
@@ -580,6 +568,7 @@ func _apply_component__light(root_node: Node3D, parent: Node3D, transform_node: 
 		light.light_color = to_color(data.content.m_Color)
 		transform_node.add_child(light)
 		light.owner = choose_correct_owner(root_node, parent, transform_node)
+		light.rotate_y(deg_to_rad(180.0))
 
 #----------------------------------------
 
