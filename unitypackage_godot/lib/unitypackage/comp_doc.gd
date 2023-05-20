@@ -405,7 +405,7 @@ func _comp_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, mes
 			.internalIDToNameTable
 			.filter(func(item):
 				var key = item.first.keys().front()
-				return item.first[key] == mesh_ref.fileID
+				return str(item.first[key]) == mesh_ref.fileID
 		))
 		if entry.size() > 0:
 			mesh_name = entry[0].second
