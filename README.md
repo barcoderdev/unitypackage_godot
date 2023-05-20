@@ -1,13 +1,13 @@
 # UnityPackage For Godot
 
-`unitypackage_util` LINK WAS UPDATED 2023-05-19
+`unitypackage_util` LINK WAS UPDATED 2023-05-19 (Convert fileID's to strings to preserve precision)
 
 ---
 
 - Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) at `res://FBX2glTF` (with .exe on Windows)
   - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/4994628239 (Login to Github first)
 - Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) at `res://unitypackage_util` (with .exe on Windows)
-  - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/5028487354 (Login to Github first)
+  - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/5030331908 (Login to Github first)
 - Make sure you can run `./FBX2glTF --help` and `./unitypackage_util --help` from command line, to check permissions
 - Config in `res://unitypackage_godot_config.tres`
   - On windows update this with .exe for FBX2glTF.exe and unitypackage_util.exe

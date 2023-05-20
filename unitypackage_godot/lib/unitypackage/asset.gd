@@ -362,7 +362,7 @@ func asset_material() -> Material:
 			return null
 		main_object_file_id = 2100000
 
-	var mat_doc = upack.get_comp_doc(data._guid, main_object_file_id)
+	var mat_doc = upack.get_comp_doc(data._guid, str(main_object_file_id))
 	if not mat_doc is CompDoc:
 		push_error("_Material::CompDocNotFound::%s" % main_object_file_id)
 		return null
@@ -411,7 +411,7 @@ func asset_material__m_TexEnvs(material, mat_doc: CompDoc) -> void:
 		var name = tex.keys().front()
 		tex = tex[name]
 
-		if tex.m_Texture.fileID == 0 && !tex.m_Texture.has("guid"):
+		if tex.m_Texture.fileID == "0" && !tex.m_Texture.has("guid"):
 			continue
 
 		if tex.m_Texture.guid == "0000000000000000f000000000000000":
@@ -553,6 +553,10 @@ func asset_shader_importer(_root_node, _parent) -> Node3D:
 #----------------------------------------
 
 var ShaderTypeMap = {
+	"half" = "float",
+	"half2" = "vec2",
+	"half3" = "vec3",
+	"half4" = "vec4",
 	"float2" = "vec2",
 	"float3" = "vec3",
 	"float4" = "vec4",

@@ -386,7 +386,7 @@ func asset_save_shader_to_disk(_asset, unity_shader_content: PackedByteArray, _s
 
 #----------------------------------------
 
-func get_comp_doc_by_id(file_id: int) -> CompDoc:
+func get_comp_doc_by_id(file_id: String) -> CompDoc:
 	if docs == null:
 		return null
 	for doc in docs:
@@ -396,7 +396,7 @@ func get_comp_doc_by_id(file_id: int) -> CompDoc:
 
 #----------------------------------------
 
-func get_transform_doc_from_gameobject_id(file_id: int) -> CompDoc:
+func get_transform_doc_from_gameobject_id(file_id: String) -> CompDoc:
 	if docs == null:
 		return null
 	for doc in docs:

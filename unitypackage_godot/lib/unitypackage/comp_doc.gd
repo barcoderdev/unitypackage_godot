@@ -99,12 +99,12 @@ func comp_doc_stripped_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 	if data.content.has("m_PrefabInstance"):
 		prefab_doc = get_comp_doc_by_ref(data.content.m_PrefabInstance)
 		
-		if breakpoints_enabled && !prefab_doc.content.has("m_SourcePrefab") || prefab_doc.content.m_SourcePrefab.fileID != 100100000:
+		if breakpoints_enabled && !prefab_doc.content.has("m_SourcePrefab") || prefab_doc.content.m_SourcePrefab.fileID != "100100000":
 			breakpoint
 		prefab_asset = upack.get_asset(prefab_doc.content.m_SourcePrefab.guid)
 	elif data.content.has("m_PrefabInternal"):
 		prefab_doc = get_comp_doc_by_ref(data.content.m_PrefabInternal)
-		if breakpoints_enabled && !prefab_doc.content.has("m_ParentPrefab") || prefab_doc.content.m_ParentPrefab.fileID != 100100000:
+		if breakpoints_enabled && !prefab_doc.content.has("m_ParentPrefab") || prefab_doc.content.m_ParentPrefab.fileID != "100100000":
 			breakpoint
 		prefab_asset = upack.get_asset(prefab_doc.content.m_ParentPrefab.guid)
 	else:
@@ -126,7 +126,7 @@ func _comp_doc_stripped_transform__build(root_node: Node3D, parent: Node3D, pref
 	trace("_StrippedTransform", "Building", Color.GREEN)
 
 	var child_prefabs = asset.docs.filter(func(doc: CompDoc):
-		if !doc.is_prefab():
+		if !doc.is_prefab() && !doc.is_prefab_instance():
 			return false
 		# Prefab.m_Modification.m_TransformParent
 		var prefab_parent = doc.content.m_Modification.m_TransformParent
@@ -261,6 +261,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 
 	var mesh_name: Variant = _comp_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset, mesh_ref)
 	var scene: Node = _comp_doc_mesh_filter__mesh_from_ref__gltf_scene(mesh_asset)
+	var mesh_save_name = ""
 
 	if scene == null:
 		push_error("CompDoc::MeshFilter::GltfSceneFailed::%s::%s" % [
@@ -282,23 +283,25 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 			mesh_name = mesh_name.substr(2)
 			search = search_for_node(scene, func(n):
 				if mesh_name == n.name && n is MeshInstance3D:
+					if breakpoints_enabled:
+						breakpoint
 					return n
 				return
 			)
-		if search == null:
-			# Try searching for any mesh
-			search = search_for_node(scene, func(n):
-				if n is MeshInstance3D:
-					return n
-				return
-			)
+#		if search == null:
+#			# Try searching for any mesh
+#			search = search_for_node(scene, func(n):
+#				if n is MeshInstance3D:
+#					return n
+#				return
+#			)
 
 		if search == null:
-			# TODO: Figure out correct behavior
 			push_error("CompDoc::MeshFilter::MeshSearchFailed1")
-			search = scene
+			return
 
 		mesh = search.mesh
+		mesh_save_name = mesh_name
 	else: # mesh_name == null
 		var str_fileID = str(mesh_ref.fileID)
 		search = search_for_node(scene, func(n):
@@ -310,26 +313,25 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 			var hash_val: String = upack.xxhash64(hash_text)
 			# print("%s | %s == %s" % [hash_text, hash_val, str_fileID])
 			if hash_val == str_fileID:
+				mesh_save_name = original_name(n.name)
 				return n
 			if hash_val.left(-4) == str_fileID.left(-4):
-				# TODO: Figure out why the last 4 digits don't match
-				#var diff = int(hash_val) - int(str_fileID)
-				#print("HASH DIFFERENCE: %s" % diff)
-				return n
+				if breakpoints_enabled:
+					# This should have been resolved by the fileID as String fix
+					breakpoint
 		)
 		if search == null:
 			push_error("CompDoc::MeshFilter::MeshSearchFailed3")
-			search = scene
 			return
 
 		mesh = search.mesh
 		mesh_name = search.name
-
 	if upack.enable_disk_storage:
 		var asset_storage_path = mesh_asset.disk_storage_path()
-		var mesh_storage_path = "%s%s/%d.tscn" % [
+		var mesh_storage_path = "%s%s/%s-%s.tscn" % [
 			asset_storage_path.get_basename(),
 			"_mesh",
+			mesh_save_name,
 			mesh_ref.fileID
 		]
 		var mesh_save_file = "%s.mesh" % mesh_storage_path.get_basename()

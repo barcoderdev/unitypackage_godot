@@ -17,7 +17,7 @@ var doc_debug_log_disable: bool = false
 
 #----------------------------------------
 
-var _file_id: int
+var _file_id: String
 var _ufile_id: String
 var content
 var type: String
@@ -123,11 +123,11 @@ func is_root_transform():
 func is_root_node():
 	if (data.type == "Transform"
 		&& data._extra != "stripped"
-		&& data.content.m_Father.fileID == 0
+		&& data.content.m_Father.fileID == "0"
 	): return true
 
 	if (data.type == "PrefabInstance"
-		&& data.content.m_Modification.m_TransformParent.fileID == 0
+		&& data.content.m_Modification.m_TransformParent.fileID == "0"
 	): return true
 
 	return false
@@ -159,7 +159,7 @@ func _to_string():
 	var _comp_doc_mesh_filter = data.has("_memcache_meshfilter")
 	var loaded = _comp_doc_mesh_filter
 
-	return "[CompDoc] %s | [color=#ffffff]%s[/color] | %s # %d" % [
+	return "[CompDoc] %s | [color=#ffffff]%s[/color] | %s # %s" % [
 		data.type,
 		asset.pathname, #.get_file(),
 		data._guid,

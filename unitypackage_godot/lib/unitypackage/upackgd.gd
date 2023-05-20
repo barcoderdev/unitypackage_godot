@@ -80,7 +80,7 @@ func get_asset(guid: String) -> Asset:
 func get_comp_doc_by_ref(file_ref: Dictionary) -> CompDoc:
 	return get_comp_doc(file_ref.guid, file_ref.fileID)
 
-func get_comp_doc(guid: String, file_id: int) -> CompDoc:
+func get_comp_doc(guid: String, file_id: String) -> CompDoc:
 	var asset = get_asset(guid)
 	if asset == null:
 		return null
