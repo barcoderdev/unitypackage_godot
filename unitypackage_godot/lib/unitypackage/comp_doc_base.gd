@@ -116,7 +116,7 @@ func is_stripped_transform():
 func is_root_transform():
 	return (data.type == "Transform"
 		&& data._extra != "stripped"
-		&& data.content.m_Father.fileID == 0)
+		&& data.content.m_Father.fileID == "0")
 
 #----------------------------------------
 

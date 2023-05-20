@@ -202,7 +202,7 @@ func comp_doc_mesh_filter(root_node: Node3D, parent: Node3D) -> Node3D:
 	var mesh_ref = data.content.m_Mesh
 	var new_node: Node3D = Node3D.new()
 
-	if not mesh_ref.guid is String && mesh_ref.guid == 0 && mesh_ref.fileID == 10209:
+	if not mesh_ref.guid is String && mesh_ref.guid == 0 && mesh_ref.fileID == "10209":
 		_comp_doc_mesh_filter__plane(root_node, parent, new_node)
 	else:
 		_comp_doc_mesh_filter__mesh_from_ref(root_node, parent, new_node, mesh_ref)
@@ -599,7 +599,7 @@ func _apply_component__mesh_filter(root_node: Node3D, parent: Node3D, transform_
 	trace("ApplyComponent_MeshFilter")
 
 	var mesh_ref = data.content.m_Mesh
-	if not mesh_ref.guid is String && mesh_ref.guid == 0 && mesh_ref.fileID == 10209:
+	if not mesh_ref.guid is String && mesh_ref.guid == 0 && mesh_ref.fileID == "10209":
 		_comp_doc_mesh_filter__plane(root_node, parent, transform_node)
 	else:
 		_comp_doc_mesh_filter__mesh_from_ref(root_node, parent, transform_node, mesh_ref)
