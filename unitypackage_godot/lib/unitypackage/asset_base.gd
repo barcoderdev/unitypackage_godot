@@ -273,7 +273,7 @@ func asset_packed_scene_from_disk() -> PackedScene:
 #----------------------------------------
 
 func asset_resource_from_disk():
-	trace("AssetResourceFromDisk::Cached", "", Color.YELLOW)
+	trace("AssetResourceFromDisk", "", Color.YELLOW)
 	return _asset_load_from_disk()
 
 #----------------------------------------

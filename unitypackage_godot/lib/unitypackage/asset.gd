@@ -276,7 +276,7 @@ func asset_image() -> Image:
 	if asset_is_on_disk():
 		trace("Image", "FromDisk", Color.GREEN)
 		data._memcache_image = Image.load_from_file(asset_path_on_disk())
-		asset_resource_from_disk()
+		# asset_resource_from_disk()
 		return data._memcache_image
 
 	trace("Image", "Building", Color.GREEN)
@@ -426,11 +426,6 @@ func asset_material__m_TexEnvs(material, mat_doc: CompDoc) -> void:
 			material.set_shader_parameter(name, image_asset.asset_texture()) # This bloats the file instead of using a reference
 			continue
 
-#		var image = image_asset.asset_image()
-#		if not image is Image:
-#			push_warning("Asset::Material::ImageFailed")
-#			continue
-#		var texture = ImageTexture.create_from_image(image)
 		var texture = image_asset.asset_texture()
 
 		match name:
@@ -584,6 +579,8 @@ func asset_shader() -> Shader:
 		if uniforms.size() > 0
 		else ""
 	)
+
+	# TODO: Check for Properties{} values and add them as uniforms?
 
 	gdshader.code = "shader_type spatial;\n\n%s\n\nvoid fragment() { ALBEDO = vec3(1.0, 0.11, 1.0); }\n" % uniforms_text
 

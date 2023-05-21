@@ -13,11 +13,6 @@ const breakpoints_enabled: bool = false
 #----------------------------------------
 
 func comp_doc_scene(root_node: Node3D, parent: Node3D) -> Node3D:
-#	trace("Scene", "%s::%s" % [
-#		str(self),
-#		"ROOT" if root_node == null else "CHILD"
-#	], Color.ORANGE)
-
 	match data.type:
 		"Transform":
 			if is_stripped_transform():
@@ -274,14 +269,6 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 					return n
 				return
 			)
-#		if search == null:
-#			# Try searching for any mesh
-#			search = search_for_node(scene, func(n):
-#				if n is MeshInstance3D:
-#					return n
-#				return
-#			)
-
 		if search == null:
 			push_error("CompDoc::MeshFilter::MeshNameSearchFailed::%s::%s" % [
 				mesh_name,
@@ -309,8 +296,13 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 				return n
 
 			if hash_val.left(-4) == str_fileID.left(-4):
+				# This should have been resolved by the fileID as String fix
+				# TODO: Remove this at some point
+				push_error("CompDoc::MeshFilter::PrecisionIssue::%s::%s" % [
+					hash_val,
+					str_fileID
+				])
 				if breakpoints_enabled:
-					# This should have been resolved by the fileID as String fix
 					breakpoint
 		)
 		if search == null:
@@ -398,10 +390,6 @@ func _comp_doc_mesh_filter__mesh_from_ref__find_mesh_name(mesh_asset: Asset, mes
 		if entry.size() > 0:
 			mesh_name = entry[0].second
 		if mesh_name == null:
-#			push_error("CompDoc::MeshFilter::internalIDToNameTable::MissingMeshName::%s::%s" % [
-#				mesh_ref,
-#				mesh_asset.meta.content.internalIDToNameTable
-#			])
 			return null
 	else:
 		push_error("CompDoc::MeshFilter::MissingMeshLookupDict::%s" % mesh_asset)
