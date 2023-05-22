@@ -22,7 +22,8 @@
 
 ## Notes
 
-- This has only been tested with Godot 4.0.2 on macOS 13 and Windows 10
+- This has only been tested with Godot 4.0.3 on macOS 13
+  - And Godot 4.0.2 on Windows 10
 - Main scene in `res://unitypackage_godot/scenes/main.tscn`
 - Uncheck `Immediate Load Assets` in `res://unitypackage_godot_config.tres` to only load what is opened in the UI
 - `*.unity` files are converted if they are manually loaded in the UI
@@ -89,12 +90,12 @@ Components:
 
 - GameObject
 - MeshFilter
-- MeshRenderer (partially, needs more attributes mapped)
-- SkinnedMeshRenderer (partially, needs Skeleton3D)
+- MeshRenderer
+- SkinnedMeshRenderer
 - Transform
 - Stripped Transform
-- Light (basic support)
-- Camera (basic support)
+- Light
+- Camera
 
 Importers:
 
@@ -106,18 +107,6 @@ Importers:
 - ShaderImporter (See [Shaders](#shaders) section)
 - AudioImporter
 
-## Todo
+## Known Issues
 
-Components:
-
-- Skeleton3D on SkinnedMeshRenderer
-- BoxCollider
-- CapsuleCollider
-- MeshCollider
-- SphereCollider
-
-Misc:
-
-- More material properties
-- Convert unitypackage_util to GDExtension: https://github.com/godot-rust/gdext
-   - with fbx2gltf included: https://docs.rs/cxx/latest/cxx/
+See: https://github.com/barcoderdev/unitypackage_godot/issues

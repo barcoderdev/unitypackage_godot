@@ -580,6 +580,20 @@ func _apply_component__skinned_mesh_renderer(root_node: Node3D, parent: Node3D, 
 
 	_apply_component__mesh_filter(root_node, parent, transform_node)
 	_apply_component__mesh_renderer(root_node, parent, transform_node)
+
+	# Skinned mesh transforms are controlled by animations
+	# Reset them here since they might be defaulted to odd values
+	transform_node.position = Vector3.ZERO
+	transform_node.scale = Vector3.ONE
+	for_all_nodes(transform_node, func(node):
+		if node is MeshInstance3D: # Only the meshes & parent transforms, not skeleton
+			node.position = Vector3.ZERO
+			node.scale = Vector3.ONE
+			var p = node.get_parent()
+			p.position = Vector3.ZERO
+			p.scale = Vector3.ONE
+	)
+
 	# TODO: Skeleton, attachments
 
 #----------------------------------------
