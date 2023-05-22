@@ -113,9 +113,11 @@ func comp_doc_stripped_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 		var child_transform_docs = asset.docs.filter(func(doc: CompDoc):
 			if !is_stripped_transform():
 				return false
-			if !doc.content.has("m_PrefabInternal"): # TODO: This might need m_PrefabInstance too?
-				return false
-			return doc.content.m_PrefabInternal.fileID == child_doc.data._file_id
+			if doc.content.has("m_PrefabInternal"):
+				return doc.content.m_PrefabInternal.fileID == child_doc._file_id
+			if doc.content.has("m_PrefabInstance"):
+				return doc.content.m_PrefabInstance.fileID == child_doc._file_id
+			return false
 		) as Array[CompDoc]
 
 		var child_transform_count = child_transform_docs.size()
