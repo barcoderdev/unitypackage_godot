@@ -1,5 +1,7 @@
 # UnityPackage For Godot
 
+`FBX2glTF` LINK WAS UPDATED 2023-05-21 (Add original units to node json)
+
 `unitypackage_util` LINK WAS UPDATED 2023-05-19 (Allow negative values as fileID strings)
 
 ---
@@ -11,7 +13,7 @@
 ---
 
 - Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) at `res://FBX2glTF` (with .exe on Windows)
-  - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/4994628239 (Login to Github first)
+  - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/5040011556 (Login to Github first)
 - Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) at `res://unitypackage_util` (with .exe on Windows)
   - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/5030456711 (Login to Github first)
 - Make sure you can run `./FBX2glTF --help` and `./unitypackage_util --help` from command line, to check permissions

@@ -97,14 +97,8 @@ func comp_doc_stripped_transform(root_node: Node3D, parent: Node3D) -> Node3D:
 		push_error("CompDoc::StrippedTransform::PrefabAssetMissing::%s" % self)
 		return null
 
-	var node = _comp_doc_stripped_transform__build(root_node, parent, prefab_asset, prefab_doc)
-
-	return node
-
-#----------------------------------------
-
-func _comp_doc_stripped_transform__build(root_node: Node3D, parent: Node3D, prefab_asset: Asset, prefab_doc: CompDoc) -> Node3D:
-	trace("_StrippedTransform", "Building", Color.GREEN)
+	var prefab = prefab_asset.asset_scene(root_node, parent)
+	_apply_modifications(parent, prefab, prefab_doc)
 
 	var child_prefabs = asset.docs.filter(func(doc: CompDoc):
 		if !doc.is_prefab() && !doc.is_prefab_instance():
@@ -114,11 +108,27 @@ func _comp_doc_stripped_transform__build(root_node: Node3D, parent: Node3D, pref
 		return prefab_parent.fileID == data._file_id
 	) as Array[CompDoc]
 
-	var prefab = prefab_asset.asset_scene(root_node, parent)
-	_apply_modifications(parent, prefab, prefab_doc)
-
 	for child_doc in child_prefabs:
-		child_doc.comp_doc_scene(root_node, prefab)
+		# Find transform that has this prefab child
+		var child_transform_docs = asset.docs.filter(func(doc: CompDoc):
+			if !is_stripped_transform():
+				return false
+			if !doc.content.has("m_PrefabInternal"): # TODO: This might need m_PrefabInstance too?
+				return false
+			return doc.content.m_PrefabInternal.fileID == child_doc.data._file_id
+		) as Array[CompDoc]
+
+		var child_transform_count = child_transform_docs.size()
+		if child_transform_count == 0:
+			# leaf node, just build it
+			child_doc.comp_doc_scene(root_node, prefab)
+		elif child_transform_count == 1:
+			# build the transform for it since it may contain children
+			child_transform_docs.front().comp_doc_scene(root_node, prefab)
+		else:
+			push_error("CompDoc::StrippedTransform::TooManyChildPrefabTransform::%s" % self)
+			if breakpoints_enabled:
+				breakpoint
 
 	return prefab
 
@@ -328,8 +338,7 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 	var instance = MeshInstance3D.new()
 	instance.mesh = mesh
 	instance.position = search.position
-	var globalScale = mesh_asset.meta.content.meshes.globalScale
-	instance.scale = search.scale * globalScale
+	instance.scale = search.scale
 	instance.name = "_mesh" # mesh_name
 	set_created_by(instance, "CompDoc::MeshFilter")
 
@@ -357,9 +366,6 @@ func _comp_doc_mesh_filter__mesh_from_ref(root_node: Node3D, parent: Node3D, tra
 	else:
 		# Use transform origin for offset
 		instance.transform.origin = search.position
-
-		upack.patcher.patch_meshfilter_node(upack, instance, mesh_name)
-
 		transform_node.add_child(instance)
 		instance.owner = choose_correct_owner(root_node, parent, transform_node)
 

@@ -6,10 +6,6 @@ class_name UPackGD extends UPackGDBase
 
 #----------------------------------------
 
-var patcher: PackagePatcher = PackagePatcher.new()
-
-#----------------------------------------
-
 signal catalog_loaded
 signal prefabs_loaded
 
