@@ -461,7 +461,7 @@ func _init(_upack: UPackGD, _data: Dictionary):
 
 	debug_log = upack.debug_log
 
-	type = meta.type
+	type = meta.data.get("type", "Unknown")
 	filename = data.pathname.get_basename().get_file()
 	extension = data.pathname.get_extension().to_lower()
 	pathname = data.pathname

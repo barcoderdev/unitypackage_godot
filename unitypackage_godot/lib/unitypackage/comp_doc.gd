@@ -459,7 +459,7 @@ func apply_component(root_node: Node3D, parent: Node3D, transform_node: Node3D) 
 		"BoxCollider", "CapsuleCollider", "MeshCollider", "SphereCollider":
 			# TODO
 			trace("ApplyComponent", "TODO::%s" % self)
-		"Animator", "Animation", "AudioListener", "Behaviour", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent", "LODGroup":
+		"Animator", "Animation", "AudioListener", "Behaviour", "MonoBehaviour", "ReflectionProbe", "CharacterController", "NavMeshAgent", "LODGroup", "Terrain", "TerrainCollider":
 			# Don't need?
 			trace("ApplyComponent", "Skipping::%s" % self)
 		"ParticleSystem", "ParticleSystemRenderer":
@@ -615,7 +615,13 @@ func _apply_component__mesh_renderer(_root_node: Node3D, _parent: Node3D, transf
 	trace("ApplyComponent_MeshRenderer")
 
 	var materials = data.content.m_Materials.map(func(mat_ref):
-		if mat_ref.guid == BUILT_IN_SHADER_GUID:
+		if !mat_ref.has("guid"):
+			push_warning("CompDoc::ApplyComponentMeshRenderer::MatRefMissingGuid::%s" % mat_ref)
+			# TODO: Check why GUID would be missing: { fileID: "0" } only
+			if breakpoints_enabled:
+				breakpoint
+			return StandardMaterial3D.new()
+		elif mat_ref.guid == BUILT_IN_SHADER_GUID:
 			return StandardMaterial3D.new()
 		else:
 			var material = upack.get_asset_by_ref(mat_ref)
