@@ -4,7 +4,7 @@ class_name UPackGDBase
 
 #----------------------------------------
 
-const MIN_UNITYPACKAGE_UTIL_VERSION = "0.1.1"
+const MIN_UNITYPACKAGE_UTIL_VERSION = "0.1.3"
 
 #----------------------------------------
 
