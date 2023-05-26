@@ -61,6 +61,11 @@ func load_imported_pacakges():
 		if !FileAccess.file_exists(location_file):
 			continue
 		var location = FileAccess.get_file_as_string(location_file)
+		if !FileAccess.file_exists(location):
+			pprint("Browser::PackageNotFound::source::%s" % location_file, false)
+			pprint("Browser::PackageNotFound::package::%s" % location, false)
+			continue
+
 		load_package(location)
 
 #----------------------------------------
