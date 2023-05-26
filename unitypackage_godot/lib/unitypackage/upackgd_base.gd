@@ -4,6 +4,10 @@ class_name UPackGDBase
 
 #----------------------------------------
 
+const MIN_UNITYPACKAGE_UTIL_VERSION = "0.1.1"
+
+#----------------------------------------
+
 # https://docs.unity3d.com/351/Documentation/Manual/YAMLSceneExample.html
 
 #----------------------------------------
@@ -190,6 +194,34 @@ func package_extract_json(guid: String):
 
 #----------------------------------------
 
+func unitypackage_util_version_check() -> bool:
+	var version: String = _util_execute([
+		"--version"
+	], [""])[0].replace("unitypackage_util ", "")
+	return compare_sem_ver(version, MIN_UNITYPACKAGE_UTIL_VERSION) != -1
+
+#----------------------------------------
+
+func compare_sem_ver(version1: String, version2: String) -> int:
+	var v1 = version1.split(".")
+	var v2 = version2.split(".")
+
+	if v1.size() != 3 || v2.size() != 3:
+		return -1
+
+	for i in range(3): # Assuming SemVer format of <major>.<minor>.<revision>
+		var num1 = int(v1[i])
+		var num2 = int(v2[i])
+
+		if num1 > num2:
+			return 1
+		elif num1 < num2:
+			return -1
+
+	return 0  # Versions are equal
+
+#----------------------------------------
+
 func package_dump():
 	var catalog_path: String = "%s/%s/catalog.json" % [
 		upack_config.extract_path,
@@ -260,16 +292,6 @@ func _package_dump():
 
 #----------------------------------------
 
-func _package_list(dir: String):
-	return JSON.parse_string(_util_execute([
-		package_path,
-		"list",
-		"--dir",
-		dir
-	], [""])[0])
-
-#----------------------------------------
-
 func _util_execute(arguments: PackedStringArray, default: Variant):
 	# print("UPackGD::UtilExecute::%s %s" % [unitypackage_util, " ".join(arguments)])
 	var output = []
@@ -320,6 +342,8 @@ func _init(_package_path: String, _upack_config: UPackGDConfig):
 
 	assert(FileAccess.file_exists(upack_config.unitypackage_util_path), "unitypackage_util not found")
 	assert(FileAccess.file_exists(upack_config.fbx2gltf_path), "fbx2gltf not found")
+
+	assert(unitypackage_util_version_check(), "unitypackage_util needs updating to %s" % MIN_UNITYPACKAGE_UTIL_VERSION)
 
 #----------------------------------------
 

@@ -2,7 +2,7 @@
 
 `FBX2glTF` LINK WAS UPDATED 2023-05-21 (Add original units to node json)
 
-`unitypackage_util` LINK WAS UPDATED 2023-05-24 (Hacky fix for some MonoBehaviors having multiple m_Name's)
+`unitypackage_util` LINK WAS UPDATED 2023-05-25 (Added debug command)
 
 ---
 
@@ -15,7 +15,7 @@
 - Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) at `res://FBX2glTF` (with .exe on Windows)
   - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/5040011556 (Login to Github first)
 - Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) at `res://unitypackage_util` (with .exe on Windows)
-  - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/5069679624 (Login to Github first)
+  - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/5082786469 (Login to Github first)
 - Make sure you can run `./FBX2glTF --help` and `./unitypackage_util --help` from command line, to check permissions
 - Config in `res://unitypackage_godot_config.tres`
   - On windows update this with .exe for FBX2glTF.exe and unitypackage_util.exe
