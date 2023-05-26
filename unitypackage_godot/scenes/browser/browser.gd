@@ -93,6 +93,11 @@ func load_package(package: String):
 
 func load_directories(upack: UPackGD):
 	var dirs = upack.directories()
+
+	if dirs.size() == 0:
+		pprint("Browser::LoadDirectories::Empty", false)
+		return
+
 	var root_path = dirs[0]
 
 	var package_item = dir_tree.create_item()
