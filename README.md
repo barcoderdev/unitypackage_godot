@@ -1,6 +1,6 @@
 # UnityPackage For Godot
 
-`FBX2glTF` LINK WAS UPDATED 2023-05-21 (Add original units to node json)
+`FBX2glTF` LINK WAS UPDATED 2023-09-03 (Fix expired downloads)
 
 `unitypackage_util` LINK WAS UPDATED 2023-05-26 (Handle labels in asset.meta files)
 
@@ -13,7 +13,7 @@
 ---
 
 - Requires [barcoderdev/FBX2glTF](https://github.com/barcoderdev/FBX2glTF) at `res://FBX2glTF` (with .exe on Windows)
-  - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/5040011556 (Login to Github first)
+  - Download latest version at: https://github.com/barcoderdev/FBX2glTF/actions/runs/6067614287 (Login to Github first)
 - Requires [barcoderdev/unitypackage_util](https://github.com/barcoderdev/unitypackage_util) at `res://unitypackage_util` (with .exe on Windows)
   - Download latest version at: https://github.com/barcoderdev/unitypackage_util/actions/runs/5093399353 (Login to Github first)
 - Make sure you can run `./FBX2glTF --help` and `./unitypackage_util --help` from command line, to check permissions
